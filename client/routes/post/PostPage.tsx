@@ -65,7 +65,7 @@ export default function PostPage() {
   // include custom userscript
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = "https://gist.githubusercontent.com/gfieldGG/d0c8efd1f3acce6fe98c9e1b2c7cd4c8/raw/5548bc2fe7291a56e4b6b59796803b8d342859aa/userscript-hybooru.js";
+    script.src = "/static/userscript.js";
     script.async = true;
     document.body.appendChild(script);
 
