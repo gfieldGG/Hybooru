@@ -62,10 +62,10 @@ export default function PostPage() {
 
   const staticNotes = pageData.post.notes.filter(note => !note.rect);
 
-  // include custom userscript
+  // include sidebar userscript
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = "/static/userscript.js";
+    script.src = "/static/userscript-sidebar.js";
     script.async = true;
     document.body.appendChild(script);
 

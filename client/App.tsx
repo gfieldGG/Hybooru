@@ -28,27 +28,39 @@ export const EM_SIZE = 20;
 // eslint-disable-next-line prefer-arrow-callback
 export default hot(module)(function App({ initialData }: Props) {
   const contextData = usePageDataInit(initialData);
-  
+
   useEffect(() => {
     const onResize = () => {
       const minSize = Math.min(window.innerWidth, window.innerHeight);
       const fontSize = Math.min(1, minSize / MIN_PAGE_SIZE) * EM_SIZE;
       document.documentElement.style.fontSize = fontSize + "px";
     };
-    
+
     if(initialData._error) {
       toast.error(initialData._error.message);
     }
-    
+
     if(initialData._ssrError) {
       toast.error("There was an error during Server Side Rendering.");
     }
-    
+
     onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, [initialData]);
-  
+
+  // include global userscript
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "/static/userscript-global.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   return (
     <SSRProvider>
       <ThemeProvider init={initialData._theme}>

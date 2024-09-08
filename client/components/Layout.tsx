@@ -89,10 +89,10 @@ export default function Layout({ className, sidebar, children, extraLink, search
         </div>
         <ReactForm className="search" action={searchAction}>
           <TagInput name="query" placeholder="Search: flower sky 1girl" />
-          <SSRCurtain><a className="settingsButton" href="#" onClick={onOptionsButtonClick}><img src="/static/cog.svg" alt="settings" /></a></SSRCurtain>
           <button hidden /> {/* Capture enter-submit */}
-          {random && <button formAction="/random">Random</button>}
           <button>Search</button>
+          {random && <button formAction="/random">Random</button>}
+          <SSRCurtain><a className="settingsButton" href="#" onClick={onOptionsButtonClick}><img src="/static/cog.svg" alt="settings" /></a></SSRCurtain>
         </ReactForm>
         {fetching && <div className="progress" />}
         <SettingsMenu open={settingsOpen} simpleSettings={simpleSettings} onClick={stopPropagation} />
