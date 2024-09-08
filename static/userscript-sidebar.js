@@ -2,7 +2,7 @@
     'use strict';
 
     const updateSelector = "div#root"
-    const selector = "div>div.namespace"; // all relevant elements
+    const selector = "div>div.namespace:not(.collapsible)"; // all relevant elements
 
     const blocksCollapse = ["statistics","sources"];
     const blocksHide = ["filename","hybooru"];
