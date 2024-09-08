@@ -47,4 +47,39 @@
             window.location.href = newUrl;
         }
     });
+
+    // set default audio volume
+    // adapted from https://greasyfork.org/scripts/36270
+    var setvol_volumepct = 0.1;
+    // == == == Detect added nodes / attach MutationObserver == == ==
+    if (document.body){
+        // Check existing videos
+        setvol_checkNode(document.body);
+        // Watch for changes that could be new videos
+        var setvol_MutOb = (window.MutationObserver) ? window.MutationObserver : window.MutationObserver;
+        if (setvol_MutOb){
+            var setvol_chgMon = new setvol_MutOb(function(mutationSet){
+                mutationSet.forEach(function(mutation){
+                    for (var setvol_node_count=0; setvol_node_count<mutation.addedNodes.length; setvol_node_count++){
+                        if (mutation.addedNodes[setvol_node_count].nodeType == 1){
+                            setvol_checkNode(mutation.addedNodes[setvol_node_count]);
+                        }
+                    }
+                });
+            });
+            // attach setvol_chgMon to document.body
+            var setvol_opts = {childList: true, subtree: true};
+            setvol_chgMon.observe(document.body, setvol_opts);
+        }
+    }
+
+    function setvol_checkNode(el){
+        if (el.nodeName == "video" || el.nodeName == "audio") var vids = [el];
+        else var vids = el.querySelectorAll('video, audio');
+        if (vids.length > 0){
+            for (var j=0; j<vids.length; j++){
+                vids[j].volume = setvol_volumepct;
+            }
+        }
+    }
 })();

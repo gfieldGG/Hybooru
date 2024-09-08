@@ -20,9 +20,7 @@ export default function File({ post, link, className, controls = true, autoPlay 
   const config = useConfig();
   const SSR = useSSR();
   const [error, setError] = useReducer(() => true, false);
-
-  const volume = 0.1;
-
+  
   const width = "width" in post && post.width || undefined;
   const height = "height" in post && post.height || undefined;
   const size = post.size && parseSize(post.size);
@@ -81,7 +79,7 @@ export default function File({ post, link, className, controls = true, autoPlay 
     case Mime.GENERAL_ANIMATION: {
       return (
         <FileWrap className={className} width={width} height={height} link={controls ? undefined : link} notes={notes}>
-          <video className="video" controls={controls} autoPlay={autoPlay} loop volume={volume} muted={muted}
+          <video className="video" controls={controls} autoPlay={autoPlay} loop muted={muted}
                  width={width} height={height} onError={setError} {...rest}>
             <source src={fileUrl(post)} />
             Your browser does not support this video.
@@ -103,7 +101,7 @@ export default function File({ post, link, className, controls = true, autoPlay 
     case Mime.GENERAL_AUDIO: {
       return (
         <FileWrap className={className} notes={notes}>
-          <audio className="audio" src={fileUrl(post)} autoPlay={autoPlay && !muted} volume={volume} loop controls onError={setError} {...rest} />
+          <audio className="audio" src={fileUrl(post)} autoPlay={autoPlay && !muted} loop controls onError={setError} {...rest} />
         </FileWrap>
       );
     }
