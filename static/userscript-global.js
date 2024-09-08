@@ -1,6 +1,30 @@
 (function() {
     'use strict';
 
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .header .ThemeSwitch > input {
+            width: 1em;
+            height: 1em;
+            margin-bottom: -0.1em;
+        }
+        .TagInput {
+            border-radius: 5px;
+            border: none;
+        }
+        .TagInput .tags {
+            border: none;
+            border-top: none;
+            border-radius: 5px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+        button {
+            border: none;
+        }
+    `;
+    document.head.appendChild(style);
+
 	// Check if the active element is an input, textarea, or contenteditable
     function isInputFocused() {
         const activeElement = document.activeElement;

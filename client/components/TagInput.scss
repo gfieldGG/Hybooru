@@ -2,16 +2,12 @@
 .TagInput {
   input {
     width: 100%;
-    border-radius: 5px;
-    border: none;
   }
 
   .tags {
     position: fixed;
+    border: 1px solid rgba(127, 127, 127, 0.8);
     border-top: none;
-    border-radius: 5px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
     background: var(--page-background);
 
     .row {
