@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { PostPageData, Relation } from "../../../server/routes/apiTypes";
 import { fileUrl, MIME_STRING } from "../../../server/helpers/consts";
 import { parseDuration, parseSize } from "../../helpers/utils";
@@ -23,24 +23,24 @@ export default function PostPage() {
   const { ratingStars } = useConfig();
   const [pageData] = usePageData<PostPageData>();
   const [fullHeight] = useLocalStorage("fullHeight", false);
-
+  
   const sortedRelations = useMemo(() => {
     if(!pageData?.post) return [];
     else return [...pageData.post.relations, pageData.post].sort((a, b) => a.id - b.id);
   }, [pageData?.post]);
-
+  
   if(!pageData) {
     return (
       <Layout className="PostPage" />
     );
   }
-
+  
   if(!pageData.post) {
     return <NotFoundPage />;
   }
-
+  
   const link = fileUrl(pageData.post);
-
+  
   let rating;
   if(ratingStars !== null) {
     if(pageData.post.rating !== null) {
@@ -59,21 +59,9 @@ export default function PostPage() {
       );
     }
   }
-
+  
   const staticNotes = pageData.post.notes.filter(note => !note.rect);
-
-  // include sidebar userscript
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = "/static/userscript-sidebar.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
+  
   return (
     <Layout className={`PostPage${fullHeight ? " fullHeight" : ""}`}
             simpleSettings
@@ -121,3 +109,4 @@ export default function PostPage() {
     </Layout>
   );
 }
+

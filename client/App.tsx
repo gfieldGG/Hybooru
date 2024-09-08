@@ -49,15 +49,21 @@ export default hot(module)(function App({ initialData }: Props) {
     return () => window.removeEventListener("resize", onResize);
   }, [initialData]);
 
-  // include global userscript
+  // include userscripts
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = "/static/userscript-global.js";
-    script.async = true;
-    document.body.appendChild(script);
+    const scriptGlobal = document.createElement('script');
+    scriptGlobal.src = "/static/userscript-global.js";
+    scriptGlobal.async = true;
+    document.body.appendChild(scriptGlobal);
+
+    const scriptSidebar = document.createElement('script');
+    scriptSidebar.src = "/static/userscript-sidebar.js";
+    scriptSidebar.async = true;
+    document.body.appendChild(scriptSidebar);
 
     return () => {
-      document.body.removeChild(script);
+      document.body.removeChild(scriptGlobal);
+      document.body.removeChild(scriptSidebar);
     };
   }, []);
 
