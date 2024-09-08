@@ -8,12 +8,11 @@
             height: 1em;
             margin-bottom: -0.1em;
         }
-        .TagInput {
+        .TagInput input {
             border-radius: 5px;
             border: none;
         }
         .TagInput .tags {
-            border: none;
             border-top: none;
             border-radius: 5px;
             border-top-left-radius: 0;
