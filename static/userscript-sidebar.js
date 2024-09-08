@@ -1,6 +1,7 @@
 (function() {
     'use strict';
 
+	const updateSelector = "div#root"
 	const selector = "div>div.namespace"; // all relevant elements
 
 	const blocksCollapse = ["statistics","sources"];
@@ -57,6 +58,11 @@
 
     }
 
-    // Run the process function when the DOM is fully loaded
-    window.addEventListener('load', processBlocks);
+	// == == == Detect added nodes / attach MutationObserver == == ==
+    if (document.querySelector(updateSelector)){
+        // Check once initially
+		processBlocks();
+		// Watch for changes that could be new videos
+        (new MutationObserver(processBlocks)).observe(document.querySelector(updateSelector), {childList: true, subtree: true});
+    }
 })();

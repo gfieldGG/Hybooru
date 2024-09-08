@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { PostPageData, Relation } from "../../../server/routes/apiTypes";
 import { fileUrl, MIME_STRING } from "../../../server/helpers/consts";
 import { parseDuration, parseSize } from "../../helpers/utils";
@@ -28,19 +28,7 @@ export default function PostPage() {
     if(!pageData?.post) return [];
     else return [...pageData.post.relations, pageData.post].sort((a, b) => a.id - b.id);
   }, [pageData?.post]);
-
-  // include userscripts
-  useEffect(() => {
-    const scriptSidebar = document.createElement('script');
-    scriptSidebar.src = "/static/userscript-sidebar.js";
-    scriptSidebar.async = true;
-    document.body.appendChild(scriptSidebar);
-
-    return () => {
-      document.body.removeChild(scriptSidebar);
-    };
-  }, []);
-
+  
   if(!pageData) {
     return (
       <Layout className="PostPage" />
