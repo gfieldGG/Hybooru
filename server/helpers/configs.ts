@@ -101,7 +101,7 @@ let configs: Configs = {
   },
   versionCheck: {
     enabled: true,
-    owner: "funmaker",
+    owner: "gfieldgg",
     repo: "hybooru",
     cacheLifeMs: 3600000
   }
@@ -116,13 +116,13 @@ function isPlainObject(obj: any) {
 
 function deepMerge<T extends Object>(base: T, object: T): T {
   const ret = { ...base, ...object };
-  
+
   for(const key in object) {
     if(!object.hasOwnProperty(key)) continue;
-    
+
     if(isPlainObject(base[key]) && isPlainObject(object[key])) ret[key] = deepMerge(base[key] as any, object[key]);
   }
-  
+
   return ret;
 }
 
@@ -132,14 +132,14 @@ try {
   // noinspection UnnecessaryLocalVariableJS
   const configsJson: typeof import("../../configs.json") = JSON.parse(fs.readFileSync("./configs.json").toString("utf-8"));
   configs = deepMerge(configs, configsJson);
-  
+
   for(const movedOption of movedOptions) {
     if(configs[movedOption] !== undefined) {
       console.error(`${chalk.bold.yellow("Warning!")} Config option ${movedOption} is deprecated and will be removed in future releases, use posts.${movedOption} instead!`);
       (configs.posts as any)[movedOption] ??= configs[movedOption];
     }
   }
-  
+
   if(configs.rating?.serviceName !== undefined) {
     console.error(`${chalk.bold.yellow("Warning!")} Config option rating.serviceName is deprecated and will be removed in future releases, use rating.service instead!`);
     configs.rating.service ??= configs.rating.serviceName;
@@ -147,7 +147,7 @@ try {
 } catch(e) {
   console.error("Failed to read configs.json");
   console.error(e);
-  
+
   throw e;
 }
 

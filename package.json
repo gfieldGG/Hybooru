@@ -1,14 +1,14 @@
 {
 	"name": "hybooru",
 	"description": "Hydrus-based booru-styled imageboard in React",
-	"version": "1.12.1-dev5",
+	"version": "1.12.1-dev6",
 	"engines": {
 		"node": ">=14.0.0",
 		"npm": ">=7.0.0"
 	},
 	"main": "server.ts",
 	"author": "Fun Maker",
-	"repository": "https://github.com/funmaker/Hybooru",
+	"repository": "https://github.com/gfieldGG/Hybooru",
 	"scripts": {
 		"start": "rm -rf build && webpack --config webpack/server.dev.babel.js",
 		"start:prod": "cd dist && npm start",

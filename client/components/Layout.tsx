@@ -32,39 +32,39 @@ export default function Layout({ className, sidebar, children, extraLink, search
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
   const mobile = rect?.width && rect.width < 1000;
-  
+
   const onSidebarButtonClick = useCallback((ev: React.MouseEvent) => {
     ev.preventDefault();
     openSidebar();
   }, [openSidebar]);
-  
+
   const onOptionsButtonClick = useCallback((ev: React.MouseEvent) => {
     ev.preventDefault();
     setSettingsOpen(true);
   }, []);
-  
+
   let domClassName = "Layout";
   if(mobile) domClassName += ` mobile`;
   if(className) domClassName += ` ${className}`;
-  
+
   let dimmerActive = dimmed || false;
   if(mobile && sidebarOpen) dimmerActive = true;
-  
+
   useEffect(() => {
     if(!dimmerActive) return;
-    
+
     document.documentElement.classList.add("dimmed");
     return () => document.documentElement.classList.remove("dimmed");
   }, [dimmerActive]);
-  
+
   useEffect(() => {
     if(!settingsOpen) return;
     const onDocumentClick = () => setSettingsOpen(false);
-    
+
     document.addEventListener("click", onDocumentClick);
     return () => document.removeEventListener("click", onDocumentClick);
   }, [settingsOpen]);
-  
+
   return (
     <div className={domClassName} ref={ref}>
       <div className={`sidebar${sidebarOpen ? " open" : ""}${sidebar ? "" : " simple"}`}>
@@ -84,7 +84,6 @@ export default function Layout({ className, sidebar, children, extraLink, search
           <Link to="/posts">All Posts</Link>
           <Link to="/tags">Tags</Link>
           <Link to="/random">Random</Link>
-          <a href="https://github.com/funmaker/hybooru" target="_blank" rel="noreferrer">GitHub</a>
           <ThemeSwitch />
           {extraLink}
         </div>

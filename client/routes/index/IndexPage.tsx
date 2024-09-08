@@ -16,16 +16,16 @@ export default function IndexPage() {
   const config = useConfig();
   const [theme] = useTheme();
   const [showMotd, setShowMotd] = useState(true);
-  
+
   useChange(theme, () => {
     setShowMotd(false);
     refresh();
   });
-  
+
   useChange(pageData, () => {
     setShowMotd(true);
   });
-  
+
   return (
     <div className="IndexPage">
       {config.expectMotd &&
@@ -42,7 +42,6 @@ export default function IndexPage() {
         <Link to="/posts">All Posts</Link>
         <Link to="/tags">Tags</Link>
         <a href="/random">Random</a>
-        <a href="https://github.com/funmaker/hybooru" target="_blank" rel="noreferrer">GitHub</a>
         <ThemeSwitch />
       </div>
       <ReactForm className="search" action="/posts">
@@ -58,9 +57,8 @@ export default function IndexPage() {
         </div>
       }
       <div className="footer">
-        Running <a href="https://github.com/funmaker/hybooru" target="_blank" rel="noreferrer">HyBooru</a> v{config.version}
+        Running <a href="https://github.com/gfieldGG/hybooru" target="_blank" rel="noreferrer">HyBooru</a> v{config.version}
         {pageData?.updateUrl && <a className="updateInfo" href={pageData.updateUrl} target="_blank" rel="noreferrer">(Update Avaliable)</a>} <br />
-        Original concept by <a href="https://danbooru.donmai.us/" target="_blank" rel="noreferrer">Danbooru</a>
       </div>
     </div>
   );

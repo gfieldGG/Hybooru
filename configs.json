@@ -42,7 +42,7 @@
 	},
 	"versionCheck": {
 		"enabled": true,
-		"owner": "funmaker",
+		"owner": "gfieldgg",
 		"repo": "hybooru",
 		"cacheLifeMs": 3600000
 	}
