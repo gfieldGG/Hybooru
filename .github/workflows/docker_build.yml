@@ -17,13 +17,13 @@ jobs:
         uses: crazy-max/ghaction-docker-meta@v2
         with:
           images: |
-            ghcr.io/funmaker/hybooru
+            ghcr.io/gfieldgg/hybooru
           tags: |
             type=ref,event=tag
           labels: |
             org.opencontainers.image.title=Hybooru
             org.opencontainers.image.description=Hydrus-based booru-styled imageboard in React, inspired by hyve.
-            org.opencontainers.image.vendor=funmaker
+            org.opencontainers.image.vendor=gfieldgg
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1

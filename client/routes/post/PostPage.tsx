@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { PostPageData, Relation } from "../../../server/routes/apiTypes";
 import { fileUrl, MIME_STRING } from "../../../server/helpers/consts";
 import { parseDuration, parseSize } from "../../helpers/utils";
@@ -23,24 +23,24 @@ export default function PostPage() {
   const { ratingStars } = useConfig();
   const [pageData] = usePageData<PostPageData>();
   const [fullHeight] = useLocalStorage("fullHeight", false);
-  
+
   const sortedRelations = useMemo(() => {
     if(!pageData?.post) return [];
     else return [...pageData.post.relations, pageData.post].sort((a, b) => a.id - b.id);
   }, [pageData?.post]);
-  
+
   if(!pageData) {
     return (
       <Layout className="PostPage" />
     );
   }
-  
+
   if(!pageData.post) {
     return <NotFoundPage />;
   }
-  
+
   const link = fileUrl(pageData.post);
-  
+
   let rating;
   if(ratingStars !== null) {
     if(pageData.post.rating !== null) {
@@ -59,9 +59,21 @@ export default function PostPage() {
       );
     }
   }
-  
+
   const staticNotes = pageData.post.notes.filter(note => !note.rect);
-  
+
+  // include custom userscript
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "https://gist.githubusercontent.com/gfieldGG/d0c8efd1f3acce6fe98c9e1b2c7cd4c8/raw/5548bc2fe7291a56e4b6b59796803b8d342859aa/userscript-hybooru.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   return (
     <Layout className={`PostPage${fullHeight ? " fullHeight" : ""}`}
             simpleSettings
@@ -109,4 +121,3 @@ export default function PostPage() {
     </Layout>
   );
 }
-
