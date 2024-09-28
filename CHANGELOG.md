@@ -10,9 +10,16 @@
 - Research if VACUUMing has any value
 - Invalid sequence during import
 - Option to disable notes/urls/etc
+- Fix ruffle in popup gallery
 
 
 # Unreleased
+
+
+# v1.12.2
+
+- Popup gallery now stops all off-screen media from playing instead of just muting videos
+- Fixed videos not reloading when navigating between posts
 
 
 # v1.12.1
