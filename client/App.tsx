@@ -56,14 +56,14 @@ export default hot(module)(function App({ initialData }: Props) {
     scriptGlobal.async = true;
     document.body.appendChild(scriptGlobal);
 
-    const scriptSidebar = document.createElement('script');
-    scriptSidebar.src = "/static/userscript-sidebar.js";
-    scriptSidebar.async = true;
-    document.body.appendChild(scriptSidebar);
+    const scriptPostpage = document.createElement('script');
+    scriptPostpage.src = "/static/userscript-postpage.js";
+    scriptPostpage.async = true;
+    document.body.appendChild(scriptPostpage);
 
     return () => {
       document.body.removeChild(scriptGlobal);
-      document.body.removeChild(scriptSidebar);
+      document.body.removeChild(scriptPostpage);
     };
   }, []);
 

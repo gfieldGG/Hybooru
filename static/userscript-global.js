@@ -36,15 +36,20 @@
     document.addEventListener('keydown', function(event) {
         // Check if the pressed key is "R", no modifier keys are pressed, and the focus is not on an input element
         if (event.key === 'r' && !event.ctrlKey && !event.altKey && !event.shiftKey && !isInputFocused()) {
-            // Get the current URL and extract the query parameters
-            let currentUrl = new URL(window.location.href);
-            let queryParams = currentUrl.search;
+            const randomButton = document.querySelector('div#root div.header > form.search > button[formaction="/random"');
+            if (randomButton) {
+                randomButton.click();
+            } else {
+                // Get the current URL and extract the query parameters
+                let currentUrl = new URL(window.location.href);
+                let queryParams = currentUrl.search;
 
-            // Construct the new URL with the /random path and same query parameters
-            let newUrl = `${currentUrl.origin}/random${queryParams}`;
+                // Construct the new URL with the /random path and same query parameters
+                let newUrl = `${currentUrl.origin}/random${queryParams}`;
 
-            // Navigate to the new URL
-            window.location.href = newUrl;
+                // Navigate to the new URL
+                window.location.href = newUrl;
+            }
         }
     });
 
