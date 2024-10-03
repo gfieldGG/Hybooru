@@ -21,6 +21,9 @@
         button {
             border: none;
         }
+        .Thumbnail b {
+            color: #47a2ff;
+        }
     `;
     document.head.appendChild(style);
 
