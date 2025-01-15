@@ -42,6 +42,7 @@
         <meta name="theme-color" content="#148cff">
 
         <link rel="search" type="application/opensearchdescription+xml" title="{{{appName}}}" href="/opensearch.xml">
+        <link rel="stylesheet" href="https://unpkg.com/flexmasonry/dist/flexmasonry.css">
         {{#if production}}
 			<link rel="stylesheet" href="/style.css"/>
 		{{/if}}
@@ -50,6 +51,7 @@
 		<div id="root">{{{reactContent}}}</div>
 		<script id="initialData" type="application/json">{{{initialData}}}</script>
 
+        <script src="https://unpkg.com/flexmasonry/dist/flexmasonry.js"></script>
 		<script type="text/javascript" src="/client.js"></script>
 	</body>
 </html>
