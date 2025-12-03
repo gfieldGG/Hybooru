@@ -24,21 +24,21 @@ export default function File({ post, link, className, paused, controls = true, a
   const [error, setError] = useReducer(() => true, false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  
+
   const width = "width" in post && post.width || undefined;
   const height = "height" in post && post.height || undefined;
   const size = post.size && parseSize(post.size);
   className = className ? ` ${className}` : "";
-  
+
   let mime = post.mime;
   if(error
   || (post.size && post.size > config.maxPreviewSize)
   || (post.mime === Mime.APPLICATION_FLASH && SSR)) {
     mime = Mime.GENERAL_APPLICATION;
   }
-  
+
   const notes = "notes" in post ? post.notes.filter(note => !!note.rect) : undefined;
-  
+
   useChange(post.id, () => videoRef.current && videoRef.current.load());
   useChange(paused, () => {
     const media = videoRef.current || audioRef.current;
@@ -46,9 +46,10 @@ export default function File({ post, link, className, paused, controls = true, a
     else if(paused && !media.paused) media.pause();
     else if(!paused && media.paused) media.play();
   });
-  
+
   switch(mime) {
     case Mime.IMAGE_JPEG:
+    case Mime.IMAGE_JXL:
     case Mime.IMAGE_PNG:
     case Mime.IMAGE_GIF:
     case Mime.IMAGE_BMP:
@@ -175,7 +176,7 @@ function FileWrap({ className, width, height, link, notes, children }: FileWrapP
   const style = (width !== undefined && height !== undefined) ? {
     aspectRatio: `${width} / ${height}`,
   } : undefined;
-  
+
   const domNotes = notes?.map((note, id) => (
     <div key={id}
          className="note"
@@ -187,7 +188,7 @@ function FileWrap({ className, width, height, link, notes, children }: FileWrapP
            height: `${note.rect?.height || 0}%`,
          }} />
   ));
-  
+
   if(link) return <a className={classJoin("File", className)} style={style} href={link}>{children}{domNotes}</a>;
   else return <div className={classJoin("File", className)} style={style}>{children}{domNotes}</div>;
 }

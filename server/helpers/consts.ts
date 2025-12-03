@@ -108,6 +108,7 @@ export enum Mime {
   IMAGE_GIF = 68,
   APPLICATION_PROCREATE = 69,
   IMAGE_QOI = 70,
+  IMAGE_JXL = 85,
   APPLICATION_OCTET_STREAM = 100,
   APPLICATION_UNKNOWN = 101,
 }
@@ -115,6 +116,7 @@ export enum Mime {
 export const MIME_EXT: Partial<Record<Mime, string>> = {
   [Mime.APPLICATION_HYDRUS_CLIENT_COLLECTION]: '.collection',
   [Mime.IMAGE_JPEG]: '.jpg',
+  [Mime.IMAGE_JXL]: '.jxl',
   [Mime.IMAGE_PNG]: '.png',
   [Mime.ANIMATION_APNG]: '.png',
   [Mime.IMAGE_GIF]: '.gif',
@@ -179,6 +181,7 @@ export const MIME_EXT: Partial<Record<Mime, string>> = {
 export const MIME_STRING: Partial<Record<Mime, string>> = {
   [Mime.APPLICATION_HYDRUS_CLIENT_COLLECTION]: 'collection',
   [Mime.IMAGE_JPEG]: 'image/jpeg',
+  [Mime.IMAGE_JXL]: 'image/jxl',
   [Mime.IMAGE_PNG]: 'image/png',
   [Mime.ANIMATION_APNG]: 'image/apng',
   [Mime.IMAGE_GIF]: 'image/gif',
@@ -258,7 +261,7 @@ export const thumbnailUrl = (post: Post | PostSummary) =>  `/files/t${post.sha25
 
 export function prettifyTag(tag: string) {
   const match = tag.match(namespaceRegex);
-  
+
   if(match) return match[2].replace(underscoreRegex, " ");
   else return tag.replace(underscoreRegex, " ");
 }
@@ -267,18 +270,18 @@ const toTitleCase = (str: string) => str.toLowerCase().split(' ').map(word => wo
 
 export function postTitle(post: Post) {
   const tags = Object.keys(post.tags);
-  
+
   const title = tags.filter(tag => tag.startsWith("title:")).map(prettifyTag).join(" - ");
   const creator = tags.filter(tag => tag.startsWith("creator:")).map(prettifyTag).join(" & ");
   const character = tags.filter(tag => tag.startsWith("character:")).map(prettifyTag).join(", ");
-  
+
   let ret = "";
-  
+
   if(title) ret += toTitleCase(title);
   else if(character) ret += toTitleCase(character);
   else ret += `Post ${post.id}`;
-  
+
   if(creator) ret += ` by ${toTitleCase(creator)}`;
-  
+
   return ret;
 }
