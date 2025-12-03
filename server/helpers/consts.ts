@@ -108,9 +108,9 @@ export enum Mime {
   IMAGE_GIF = 68,
   APPLICATION_PROCREATE = 69,
   IMAGE_QOI = 70,
+  IMAGE_JXL = 84,
   APPLICATION_OCTET_STREAM = 100,
   APPLICATION_UNKNOWN = 101,
-  IMAGE_JXL = 114,
 }
 
 export const MIME_EXT: Partial<Record<Mime, string>> = {
