@@ -1,7 +1,7 @@
 {
 	"name": "hybooru",
 	"description": "Hydrus-based booru-styled imageboard in React",
-	"version": "1.12.4-gf.1",
+	"version": "1.13.0-gf.0",
 	"engines": {
 		"node": ">=14.0.0",
 		"npm": ">=7.0.0"
@@ -18,7 +18,8 @@
 		"build:prod-static": "cp -rL static dist/",
 		"build:prod-package": "babel-node webpack/package.babel.js",
 		"lint": "eslint --ext .js --ext .jsx --ext .ts --ext .tsx --max-warnings 0 --ignore-path .gitignore .",
-		"lint-fix": "eslint --ext .js --ext .jsx --ext .ts --ext .tsx --ignore-path .gitignore . --fix"
+		"lint-fix": "eslint --ext .js --ext .jsx --ext .ts --ext .tsx --ignore-path .gitignore . --fix",
+		"prepare": "husky || true"
 	},
 	"dependencies": {
 		"@octokit/core": "^4.1.0",
@@ -81,8 +82,8 @@
 		"@types/webpack-dev-middleware": "^4.1.2",
 		"@types/webpack-env": "^1.16.0",
 		"@types/webpack-hot-middleware": "^2.25.4",
-		"@typescript-eslint/eslint-plugin": "^4.20.0",
-		"@typescript-eslint/parser": "^4.20.0",
+		"@typescript-eslint/eslint-plugin": "^6.21.0",
+		"@typescript-eslint/parser": "^6.21.0",
 		"babel-loader": "^8.2.2",
 		"blurhash": "^1.1.1",
 		"css-loader": "^5.2.0",
@@ -94,6 +95,7 @@
 		"eslint-plugin-react-hooks": "^4.2.0",
 		"handlebars": "^4.7.7",
 		"handlebars-loader": "^1.7.1",
+		"husky": "^9.1.7",
 		"ignore-loader": "^0.1.2",
 		"less": "^4.1.1",
 		"less-loader": "^8.0.0",
