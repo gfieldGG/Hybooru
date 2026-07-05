@@ -16,6 +16,23 @@
 
 # Unreleased
 
+- Added `GET /api/diagnostics`
+- Improved performance of tags page and API endpoints.
+- Improved performance of negative searches.
+- Fixed errors if there is no namespaces defined
+- Fixed `'nunFrames'` misspell in `GET /api/post/:id`
+
+
+# v1.14.1
+
+- Fixed errors on importing from read-only filesystem
+- Bump required NodeJS version to 20
+
+
+# v1.14.0
+
+- Added support for JPEG XL/.JXL (#58)
+
 
 # v1.13.0
 

@@ -5,7 +5,6 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import morgan from 'morgan';
 import reactMiddleware from "./middlewares/reactMiddleware";
-import configMiddleware from "./middlewares/configMiddleware";
 import HTTPError from "./helpers/HTTPError";
 import { ErrorPageData } from "./routes/apiTypes";
 import { router } from "./routes";
@@ -28,7 +27,6 @@ if(process.env.NODE_ENV === 'development') {
   app.use('/style.css', express.static('style.css'));
 }
 
-app.use(configMiddleware);
 app.use(reactMiddleware);
 
 app.use('/', router);
@@ -44,12 +42,13 @@ app.use((err: Partial<HTTPError>, req: express.Request, res: express.Response, _
   if(res.headersSent) return;
   
   const code = err.HTTPcode || 500;
+  const headers = err.headers || {};
   const error = {
     code,
     message: err.publicMessage || http.STATUS_CODES[code] || "Something Happened",
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   };
-  res.status(code).react<ErrorPageData>({ _error: error });
+  res.status(code).header(headers).react<ErrorPageData>({ _error: error });
 });
 
 export default app;
