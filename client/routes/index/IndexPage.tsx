@@ -6,14 +6,16 @@ import useConfig from "../../hooks/useConfig";
 import ReactForm from "../../components/ReactForm";
 import TagInput from "../../components/TagInput";
 import ThemeSwitch from "../../components/ThemeSwitch";
+import Logo from "../../components/Logo";
+import Layout from "../../components/Layout";
 import File from "../post/File";
 import useTheme from "../../hooks/useTheme";
 import useChange from "../../hooks/useChange";
 import "./IndexPage.scss";
 
 export default function IndexPage() {
-  const [pageData,, refresh] = usePageData<IndexPageData>();
-  const config = useConfig();
+  const { pageData, refresh } = usePageData<IndexPageData>();
+  const [config] = useConfig();
   const [theme] = useTheme();
   const [showMotd, setShowMotd] = useState(true);
   
@@ -27,7 +29,7 @@ export default function IndexPage() {
   });
   
   return (
-    <div className="IndexPage">
+    <Layout className="IndexPage" plain>
       {config.expectMotd &&
         <div className="motdWrap">
           {showMotd && pageData?.motd &&
@@ -36,7 +38,7 @@ export default function IndexPage() {
         </div>
       }
       <div className="header">
-        <Link to="/posts">{config.appName}</Link>
+        <Logo to="/posts" />
       </div>
       <div className="links">
         <Link to="/posts">All Posts</Link>
@@ -60,6 +62,6 @@ export default function IndexPage() {
         Running <a href="https://github.com/gfieldGG/hybooru" target="_blank" rel="noreferrer">HyBooru</a> v{config.version}
         {pageData?.updateUrl && <a className="updateInfo" href={pageData.updateUrl} target="_blank" rel="noreferrer">(Update Avaliable)</a>} <br />
       </div>
-    </div>
+    </Layout>
   );
 }

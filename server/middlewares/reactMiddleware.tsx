@@ -8,7 +8,7 @@ import App from "../../client/App";
 import index from '../views/index.handlebars';
 import HTTPError from "../helpers/HTTPError";
 import configs from "../helpers/configs";
-import { AnySSRPageData } from "../routes/apiTypes";
+import { InitialData } from "../routes/apiTypes";
 import * as globalController from "../controllers/global";
 
 const removeTags = /[<>]/g;
@@ -38,9 +38,10 @@ export interface OGAudio {
   type: string;
 }
 
-export interface Options {
+export interface SSROptions {
   title?: string;
   htmlRedirect?: string;
+  canonicalUrl?: string;
   ogTitle?: string;
   ogDescription?: string;
   ogType?: string;
@@ -49,13 +50,15 @@ export interface Options {
   ogVideo?: OGVideo;
   ogUrl?: string;
   ogSiteName?: string;
+  noIndex?: boolean;
+  soft404?: boolean;
 }
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     export interface Response {
-      react: <Data>(initialData: Data, options?: Options) => Response;
+      react: <Data>(initialData: Data, options?: SSROptions) => Response;
     }
   }
 }
@@ -73,6 +76,10 @@ export default function reactMiddleware(req: express.Request, res: express.Respo
       const config = await globalController.getConfig();
       const title = options?.title ? `${options?.title} | ${config.appName}` : config.appName;
       
+      if(options?.noIndex) {
+        res.header('X-Robots-Tag', 'noindex');
+      }
+      
       // noinspection JSUnreachableSwitchBranches
       switch(req.accepts(['html', 'json'])) {
         case "html": {
@@ -81,7 +88,7 @@ export default function reactMiddleware(req: express.Request, res: express.Respo
             break;
           }
           
-          const initialDataEx: AnySSRPageData = {
+          const initialDataEx: InitialData = {
             ...initialData,
             _config: config,
             _theme: theme,
@@ -104,6 +111,8 @@ export default function reactMiddleware(req: express.Request, res: express.Respo
           
           const initialDataJSON = JSON.stringify(initialDataEx).replace(removeTags, tag => tagsToReplace[tag] || tag);
           
+          if(options?.soft404) res.status(404);
+          
           res.send(index({
             reactContent,
             initialData: initialDataJSON,
@@ -112,14 +121,16 @@ export default function reactMiddleware(req: express.Request, res: express.Respo
             title,
             appName: configs.appName,
             description: configs.appDescription,
+            canonicalUrl: options?.canonicalUrl || `${req.protocol}://${req.get('host')}${req.originalUrl}`,
             ogTitle: options?.ogTitle || configs.appName,
             ogDescription: options?.ogDescription || configs.appDescription,
             ogType: options?.ogTitle || "website",
             ogImage: options?.ogImage,
             ogAudio: options?.ogAudio,
             ogVideo: options?.ogVideo,
-            ogUrl: options?.ogUrl || `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+            ogUrl: options?.ogUrl,
             ogSiteName: options?.ogSiteName || configs.appName,
+            noIndex: options?.noIndex,
           }));
           break;
         }
