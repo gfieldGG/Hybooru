@@ -42,7 +42,7 @@ export default React.memo(function Tags({ tags, grouped, searchMod }: TagsProps)
         {groupEntries.map(([namespace, members]) =>
           <Namespace key={namespace} header={namespace} members={members} tags={tags} searchMod={searchMod} sorted />,
         )}
-        <Namespace header="Tags" members={free} tags={tags} searchMod={searchMod} sorted />
+        {free.length > 0 && <Namespace header="Tags" members={free} tags={tags} searchMod={searchMod} sorted />}
       </div>
     );
   }
