@@ -9,6 +9,7 @@ export default class Notes extends Import {
     SELECT count(1) FROM file_notes
       INNER JOIN notes ON file_notes.note_id = notes.note_id
       INNER JOIN labels ON file_notes.name_id = labels.label_id
+      CROSS JOIN temp.kept_posts kept ON kept.hash_id = file_notes.hash_id
   `;
   
   outputQuery = (table: string) => `COPY ${table}(id, postid, label, note) FROM STDIN (FORMAT CSV)`;
@@ -22,6 +23,7 @@ export default class Notes extends Import {
     FROM file_notes
       INNER JOIN notes ON file_notes.note_id = notes.note_id
       INNER JOIN labels ON file_notes.name_id = labels.label_id
+      CROSS JOIN temp.kept_posts kept ON kept.hash_id = file_notes.hash_id
     WHERE file_notes.note_id > ?
     ORDER BY file_notes.note_id
     LIMIT ?

@@ -2,7 +2,7 @@ import { PoolClient } from "pg";
 import { Database } from "better-sqlite3";
 import { ServiceID } from "../consts";
 import { Import } from "./import";
-import { Service } from "./index";
+import { Service, SystemFilter } from "./index";
 
 export default class Posts extends Import {
   display = "Posts";
@@ -11,7 +11,13 @@ export default class Posts extends Import {
   
   batchSizeMul = 1 / 2;
   outputTable = "posts";
-  totalQuery = () => `SELECT count(1) FROM ${this.inputTable()}`;
+  totalQuery = () => `
+    SELECT count(1)
+    FROM ${this.inputTable()} current_files
+      LEFT JOIN file_inbox ON file_inbox.hash_id = current_files.hash_id
+    WHERE ${this.systemFilterQuery()}
+  `;
+  
   outputQuery = (table: string) => `COPY ${table}(id, sha256, md5, blurhash, size, width, height, duration, num_frames, has_audio, rating, mime, inbox, trash, posted) FROM STDIN (FORMAT CSV)`;
   inputQuery = () => `
     SELECT
@@ -38,12 +44,25 @@ export default class Posts extends Import {
       LEFT JOIN blurhashes ON blurhashes.hash_id = current_files.hash_id
       LEFT JOIN local_ratings ON local_ratings.service_id = ${this.ratingService?.id || null} AND local_ratings.hash_id = current_files.hash_id
       LEFT JOIN file_inbox ON file_inbox.hash_id = current_files.hash_id
-    WHERE current_files.hash_id > ?
+    WHERE current_files.hash_id > ? AND ${this.systemFilterQuery()}
     ORDER BY current_files.hash_id ASC
     LIMIT ?
   `;
   
-  constructor(hydrus: Database, postgres: PoolClient, public ratingService: Service | null) {
+  constructor(hydrus: Database, postgres: PoolClient, public ratingService: Service | null, public systemFilter: SystemFilter) {
     super(hydrus, postgres);
+  }
+  
+  systemFilterQuery() {
+    const trash = this.service?.type === ServiceID.LOCAL_FILE_TRASH_DOMAIN;
+    const conditions: string[] = [];
+    
+    if(trash ? !this.systemFilter.allowTrash : !this.systemFilter.allowNotTrash) conditions.push("0");
+    
+    if(!this.systemFilter.allowInbox && !this.systemFilter.allowArchive) conditions.push("0");
+    else if(!this.systemFilter.allowInbox) conditions.push("file_inbox.hash_id IS NULL");
+    else if(!this.systemFilter.allowArchive) conditions.push("file_inbox.hash_id IS NOT NULL");
+    
+    return conditions.length > 0 ? conditions.join(" AND ") : "1";
   }
 }

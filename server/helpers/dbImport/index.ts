@@ -3,7 +3,7 @@ import path from "path";
 import chalk from "chalk";
 import SqliteDatabase, { Database } from "better-sqlite3";
 import YAML from "yaml";
-import SQL, { SQLStatement } from "sql-template-strings";
+import SQL from "sql-template-strings";
 import { Pool, PoolClient } from "pg";
 import * as postsController from "../../controllers/posts";
 import { ImportStats, Relation } from "../../routes/apiTypes";
@@ -78,9 +78,10 @@ export async function rebuild() {
       configs.rating = null;
     }
     
-    await new Posts(hydrus, postgres, ratingsService).startEach(filesServices);
-    await new Urls(hydrus, postgres).start();
-    await new Notes(hydrus, postgres).start();
+    const systemFilter = getSystemFilter();
+    await new Posts(hydrus, postgres, ratingsService, systemFilter).startEach(filesServices);
+    await syncKeptPosts(hydrus, postgres);
+    
     await new Tags(hydrus, postgres).start();
     await new Mappings(hydrus, postgres).startEach(mappingsServices);
     
@@ -89,14 +90,22 @@ export async function rebuild() {
     
     const options = await importOptions(hydrus, postgres);
     
-    await resolveFileRelations(hydrus, postgres);
+    await analyze(postgres, ["posts", "tags", "mappings", "tag_parents", "tag_siblings"]);
     if(resolveRelations) await normalizeTagRelations(postgres);
     
-    if(configs.tags.blacklist && configs.tags.blacklist.length > 0) await applyBlacklist(postgres);
-    if(configs.tags.whitelist && configs.tags.whitelist.length > 0) await applyWhitelist(postgres);
+    let removedPosts = 0;
+    if(configs.tags.blacklist && configs.tags.blacklist.length > 0) removedPosts += await applyBlacklist(postgres);
+    if(configs.tags.whitelist && configs.tags.whitelist.length > 0) removedPosts += await applyWhitelist(postgres);
     if(configs.tags.ignore.length > 0) await removeIgnored(postgres);
     
+    if(removedPosts > 0) await syncKeptPosts(hydrus, postgres);
+    
+    await new Urls(hydrus, postgres).start();
+    await new Notes(hydrus, postgres).start();
+    await resolveFileRelations(hydrus, postgres);
+    
     if(resolveRelations) await applyTagParents(postgres);
+    await analyze(postgres, ["posts", "tags", "mappings", "urls", "notes", "relations"]);
     await createIndexes(postgres);
     await indexPresets(postgres);
     if(resolveRelations) await applyTagSiblings(postgres);
@@ -164,6 +173,50 @@ function findServices(allServices: Service[], types: ServiceID[], filter: Array<
       return service;
     }
   });
+}
+
+export interface SystemFilter {
+  allowInbox: boolean;
+  allowArchive: boolean;
+  allowTrash: boolean;
+  allowNotTrash: boolean;
+}
+
+function getSystemFilter(): SystemFilter {
+  const systemPatterns = (list: string[] | null | undefined) => (list || []).map(pat => preparePattern(pat)).filter(pat => pat.startsWith("system:"));
+  const blacklist = systemPatterns(configs.tags.blacklist);
+  const whitelist = systemPatterns(configs.tags.whitelist);
+  
+  return {
+    allowInbox: !blacklist.includes("system:inbox") && !whitelist.includes("system:archive"),
+    allowArchive: !blacklist.includes("system:archive") && !whitelist.includes("system:inbox"),
+    allowTrash: !blacklist.includes("system:trash"),
+    allowNotTrash: !whitelist.includes("system:trash"),
+  };
+}
+
+async function syncKeptPosts(hydrus: Database, postgres: PoolClient) {
+  updateProgress(false, "Collecting posts...");
+  
+  hydrus.exec(`
+    CREATE TEMP TABLE IF NOT EXISTS kept_posts (hash_id INTEGER PRIMARY KEY);
+    DELETE FROM temp.kept_posts;
+  `);
+  
+  const { rows } = await postgres.query<[number]>({ text: "SELECT id FROM posts", rowMode: "array" });
+  
+  const insert = hydrus.prepare("INSERT INTO temp.kept_posts(hash_id) VALUES (?)");
+  hydrus.transaction((ids: Array<[number]>) => {
+    for(const [id] of ids) insert.run(id);
+  })(rows);
+  
+  updateProgress(true, "Collecting posts...");
+}
+
+async function analyze(postgres: PoolClient, tables: string[]) {
+  updateProgress(false, "Analyzing...");
+  await postgres.query(`ANALYZE ${tables.join(", ")}`);
+  updateProgress(true, "Analyzing...");
 }
 
 async function importOptions(hydrus: Database, postgres: PoolClient) {
@@ -251,12 +304,14 @@ async function resolveFileRelations(hydrus: Database, postgres: PoolClient) {
       (
         SELECT group_concat(alts.hash_id)
         FROM duplicate_file_members alts
+        INNER JOIN temp.kept_posts kept_alts ON kept_alts.hash_id = alts.hash_id
         INNER JOIN alternate_file_group_members afgm1 ON afgm1.media_id = alts.media_id
         INNER JOIN alternate_file_group_members afgm2 ON afgm2.alternates_group_id = afgm1.alternates_group_id AND afgm1.media_id != afgm2.media_id
         WHERE afgm2.media_id = duplicate_files.media_id
       ) AS alternatives
     FROM duplicate_files
-    LEFT JOIN duplicate_file_members ON duplicate_files.media_id == duplicate_file_members.media_id
+    INNER JOIN duplicate_file_members ON duplicate_files.media_id == duplicate_file_members.media_id
+    INNER JOIN temp.kept_posts kept ON kept.hash_id = duplicate_file_members.hash_id
     GROUP BY duplicate_files.media_id
     HAVING count(1) > 1 OR alternatives IS NOT NULL
   `).all();
@@ -464,31 +519,22 @@ async function applyBlacklist(postgres: PoolClient) {
   
   const blacklist = configs.tags.blacklist?.map(pat => preparePattern(pat)) || [];
   const tags = blacklist.filter(pattern => !pattern.startsWith("system:"));
-  const system = blacklist.filter(pattern => pattern.startsWith("system:"));
+  let removed = 0;
   
   if(tags.length > 0) {
-    await postgres.query(SQL`
+    const result = await postgres.query(SQL`
       DELETE FROM posts
       USING unnest(${tags}::TEXT[]) pat
       INNER JOIN tags ON tags.name LIKE pat OR tags.subtag LIKE pat
       INNER JOIN mappings ON mappings.tagid = tags.id
       WHERE mappings.postid = posts.id
     `);
-  }
-  
-  const systemFlags: SQLStatement[] = [];
-  if(system.includes("system:inbox")) systemFlags.push(SQL`posts.inbox`);
-  if(system.includes("system:archive")) systemFlags.push(SQL`NOT posts.inbox`);
-  if(system.includes("system:trash")) systemFlags.push(SQL`posts.trash`);
-  const systemWhere = systemFlags.reduce((acc: null | SQLStatement, val) => (acc ? acc.append(" OR ") : SQL`WHERE `).append(val), null);
-  
-  if(systemWhere) {
-    await postgres.query(SQL`
-    DELETE FROM posts
-    `.append(systemWhere));
+    removed = result.rowCount ?? 0;
   }
   
   updateProgress(true, "Applying blacklist...");
+  
+  return removed;
 }
 
 async function applyWhitelist(postgres: PoolClient) {
@@ -496,10 +542,10 @@ async function applyWhitelist(postgres: PoolClient) {
   
   const whitelist = configs.tags.whitelist?.map(pat => preparePattern(pat)) || [];
   const tags = whitelist.filter(pattern => !pattern.startsWith("system:"));
-  const system = whitelist.filter(pattern => pattern.startsWith("system:"));
+  let removed = 0;
   
   if(tags.length > 0) {
-    await postgres.query(SQL`
+    const result = await postgres.query(SQL`
       DELETE FROM posts
       WHERE NOT EXISTS(
         SELECT 1
@@ -509,22 +555,12 @@ async function applyWhitelist(postgres: PoolClient) {
         WHERE mappings.postid = posts.id
       )
     `);
+    removed = result.rowCount ?? 0;
   }
-  
-  const systemFlags: SQLStatement[] = [];
-  if(system.includes("system:inbox")) systemFlags.push(SQL`NOT posts.inbox`);
-  if(system.includes("system:archive")) systemFlags.push(SQL`posts.inbox`);
-  if(system.includes("system:trash")) systemFlags.push(SQL`NOT posts.trash`);
-  const systemWhere = systemFlags.reduce((acc: null | SQLStatement, val) => (acc ? acc.append(" OR ") : SQL`WHERE `).append(val), null);
-  
-  if(systemWhere) {
-    await postgres.query(SQL`
-    DELETE FROM posts
-    `.append(systemWhere));
-  }
-  
   
   updateProgress(true, "Applying whitelist...");
+  
+  return removed;
 }
 
 async function removeIgnored(postgres: PoolClient) {

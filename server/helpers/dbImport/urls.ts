@@ -5,7 +5,14 @@ export default class Urls extends Import {
   batchSizeMul = 1 / 2;
   
   outputTable = "urls";
-  totalQuery = () => 'SELECT count(1) FROM urls INNER JOIN url_map ON url_map.url_id = urls.url_id';
+  // CROSS JOIN keeps urls as the outer loop, otherwise SQLite sorts every batch
+  totalQuery = () => `
+    SELECT count(1)
+    FROM urls
+      INNER JOIN url_map ON url_map.url_id = urls.url_id
+      CROSS JOIN temp.kept_posts kept ON kept.hash_id = url_map.hash_id
+  `;
+  
   outputQuery = (table: string) => `COPY ${table}(id, postid, url) FROM STDIN (FORMAT CSV)`;
   inputQuery = () => `
     SELECT
@@ -14,7 +21,8 @@ export default class Urls extends Import {
       url_map.hash_id || ',"' ||
       REPLACE(urls.url, '"', '""') || '"\n'
     FROM urls
-      INNER JOIN url_map ON url_map.url_id = urls.url_id
+      CROSS JOIN url_map ON url_map.url_id = urls.url_id
+      CROSS JOIN temp.kept_posts kept ON kept.hash_id = url_map.hash_id
     WHERE urls.url_id > ?
     ORDER BY urls.url_id
     LIMIT ?
