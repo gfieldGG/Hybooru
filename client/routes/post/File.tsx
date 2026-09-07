@@ -1,10 +1,11 @@
-import React, { useReducer, useRef } from "react";
+import React, { useCallback, useEffect, useReducer, useRef } from "react";
 import { Post, PostNote, PostSummary } from "../../../server/routes/apiTypes";
 import { fileUrl, Mime } from "../../../server/helpers/consts";
 import { classJoin, parseSize } from "../../helpers/utils";
 import useConfig from "../../hooks/useConfig";
 import useSSR from "../../hooks/useSSR";
 import useChange from "../../hooks/useChange";
+import useLocalStorage from "../../hooks/useLocalStorage";
 import Ruffle from "../../components/Ruffle";
 import "./File.scss";
 
@@ -24,32 +25,39 @@ export default function File({ post, link, className, paused, controls = true, a
   const [error, setError] = useReducer(() => true, false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
+  const [volume, setVolume] = useLocalStorage("volume", 0.1);
+  
   const width = "width" in post && post.width || undefined;
   const height = "height" in post && post.height || undefined;
   const size = post.size && parseSize(post.size);
   className = className ? ` ${className}` : "";
-
+  
   let mime = post.mime;
   if(error
   || (post.size && post.size > config.maxPreviewSize)
   || (post.mime === Mime.APPLICATION_FLASH && SSR)) {
     mime = Mime.GENERAL_APPLICATION;
   }
-
+  
   const notes = "notes" in post ? post.notes.filter(note => !!note.rect) : undefined;
-
+  
   useChange(post.id, () => videoRef.current && videoRef.current.load());
+  useEffect(() => {
+    const media = videoRef.current || audioRef.current;
+    if(media) media.volume = volume;
+  }, [volume, mime]);
+  const onVolumeChange = useCallback((ev: React.SyntheticEvent<HTMLMediaElement>) => {
+    if(ev.currentTarget.volume !== volume) setVolume(ev.currentTarget.volume);
+  }, [volume, setVolume]);
   useChange(paused, () => {
     const media = videoRef.current || audioRef.current;
     if(!media) return;
     else if(paused && !media.paused) media.pause();
     else if(!paused && media.paused) media.play();
   });
-
+  
   switch(mime) {
     case Mime.IMAGE_JPEG:
-    case Mime.IMAGE_JXL:
     case Mime.IMAGE_PNG:
     case Mime.IMAGE_GIF:
     case Mime.IMAGE_BMP:
@@ -98,7 +106,7 @@ export default function File({ post, link, className, paused, controls = true, a
       return (
         <FileWrap className={className} width={width} height={height} link={controls ? undefined : link} notes={notes}>
           <video className="video" controls={controls} autoPlay={autoPlay} loop muted={muted}
-                 width={width} height={height} onError={setError} ref={videoRef} {...rest}>
+                 width={width} height={height} onError={setError} onVolumeChange={onVolumeChange} ref={videoRef} {...rest}>
             <source src={fileUrl(post)} />
             Your browser does not support this video.
           </video>
@@ -119,7 +127,7 @@ export default function File({ post, link, className, paused, controls = true, a
     case Mime.GENERAL_AUDIO: {
       return (
         <FileWrap className={className} notes={notes}>
-          <audio className="audio" src={fileUrl(post)} autoPlay={autoPlay && !muted} loop controls onError={setError} ref={audioRef} {...rest} />
+          <audio className="audio" src={fileUrl(post)} autoPlay={autoPlay && !muted} loop controls onError={setError} onVolumeChange={onVolumeChange} ref={audioRef} {...rest} />
         </FileWrap>
       );
     }
@@ -181,7 +189,7 @@ function FileWrap({ className, width, height, link, notes, children }: FileWrapP
   const style = (width !== undefined && height !== undefined) ? {
     aspectRatio: `${width} / ${height}`,
   } : undefined;
-
+  
   const domNotes = notes?.map((note, id) => (
     <div key={id}
          className="note"
@@ -193,7 +201,7 @@ function FileWrap({ className, width, height, link, notes, children }: FileWrapP
            height: `${note.rect?.height || 0}%`,
          }} />
   ));
-
+  
   if(link) return <a className={classJoin("File", className)} style={style} href={link}>{children}{domNotes}</a>;
   else return <div className={classJoin("File", className)} style={style}>{children}{domNotes}</div>;
 }

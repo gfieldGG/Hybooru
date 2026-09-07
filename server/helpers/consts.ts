@@ -318,7 +318,7 @@ export const thumbnailUrl = (post: Post | PostSummary) =>  `/files/t${post.sha25
 
 export function prettifyTag(tag: string) {
   const match = tag.match(namespaceRegex);
-
+  
   if(match) return match[2].replace(underscoreRegex, " ");
   else return tag.replace(underscoreRegex, " ");
 }
@@ -327,18 +327,18 @@ const toTitleCase = (str: string) => str.toLowerCase().split(' ').map(word => wo
 
 export function postTitle(post: Post) {
   const tags = Object.keys(post.tags);
-
+  
   const title = tags.filter(tag => tag.startsWith("title:")).map(prettifyTag).join(" - ");
   const creator = tags.filter(tag => tag.startsWith("creator:")).map(prettifyTag).join(" & ");
   const character = tags.filter(tag => tag.startsWith("character:")).map(prettifyTag).join(", ");
-
+  
   let ret = "";
-
+  
   if(title) ret += toTitleCase(title);
   else if(character) ret += toTitleCase(character);
   else ret += `Post ${post.id}`;
-
+  
   if(creator) ret += ` by ${toTitleCase(creator)}`;
-
+  
   return ret;
 }

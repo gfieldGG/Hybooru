@@ -14,6 +14,7 @@ export interface TagsProps {
 
 // eslint-disable-next-line prefer-arrow-callback
 export default React.memo(function Tags({ tags, grouped, searchMod }: TagsProps) {
+  const { hiddenNamespaces } = useConfig();
   const [showNamespaces] = useLocalStorage("namespaces", false);
   
   if(grouped) {
@@ -25,6 +26,7 @@ export default React.memo(function Tags({ tags, grouped, searchMod }: TagsProps)
       
       if(result) {
         const namespace = result[1];
+        if(hiddenNamespaces.includes(namespace)) continue;
         if(!groups[namespace]) groups[namespace] = [];
         groups[namespace].push(tag);
       } else {

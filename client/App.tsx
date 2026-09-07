@@ -49,24 +49,6 @@ export default hot(module)(function App({ initialData }: Props) {
     return () => window.removeEventListener("resize", onResize);
   }, [initialData]);
   
-  // include userscripts
-  useEffect(() => {
-    const scriptGlobal = document.createElement('script');
-    scriptGlobal.src = "/static/userscript-global.js";
-    scriptGlobal.async = true;
-    document.body.appendChild(scriptGlobal);
-
-    const scriptPostpage = document.createElement('script');
-    scriptPostpage.src = "/static/userscript-postpage.js";
-    scriptPostpage.async = true;
-    document.body.appendChild(scriptPostpage);
-
-    return () => {
-      document.body.removeChild(scriptGlobal);
-      document.body.removeChild(scriptPostpage);
-    };
-  }, []);
-
   return (
     <SSRProvider>
       <ThemeProvider init={initialData._theme}>

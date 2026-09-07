@@ -24,6 +24,7 @@ export async function getConfig(): Promise<Config> {
   
   return {
     ...config,
+    hiddenNamespaces: configs.tags.hiddenNamespaces,
     appName: configs.appName,
     version: packageJSON.version,
     expectMotd: !!configs.tags.motd,

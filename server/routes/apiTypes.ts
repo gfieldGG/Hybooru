@@ -112,6 +112,7 @@ export interface Config {
   thumbnailSize: [number, number];
   ratingStars: number | null;
   namespaceColors: Record<string, string>;
+  hiddenNamespaces: string[];
   appName: string;
   version: string;
   expectMotd: boolean;

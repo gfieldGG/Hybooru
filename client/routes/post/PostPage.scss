@@ -23,6 +23,17 @@
       &.spaced {
         margin-top: 1em;
       }
+      
+      &.collapsible > b {
+        cursor: pointer;
+        user-select: none;
+      }
+      
+      &.collapsed > b::after {
+        content: " (expand)";
+        opacity: 0.5;
+        font-weight: normal;
+      }
     }
     
     .note {
@@ -80,6 +91,10 @@
       .Thumbnail {
         display: flex;
         flex-direction: column;
+
+        label b {
+          color: #47a2ff;
+        }
 
         &:first-child {
           margin-top: auto;

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { PostPageData, Relation } from "../../../server/routes/apiTypes";
 import { fileUrl, MIME_STRING } from "../../../server/helpers/consts";
 import { parseDuration, parseSize } from "../../helpers/utils";
@@ -67,8 +67,7 @@ export default function PostPage() {
             simpleSettings
             sidebar={<>
               {rating}
-              <div className="namespace">
-                <b>Statistics</b>
+              <SidebarBlock name="statistics" header="Statistics">
                 <div>{pageData.post.size !== null && `Size: ${parseSize(pageData.post.size)}`}</div>
                 <div>{pageData.post.width !== null && pageData.post.height !== null && `Dimensions: ${pageData.post.width}x${pageData.post.height}`}</div>
                 <div>{pageData.post.mime !== null && MIME_STRING[pageData.post.mime] && `Mime: ${MIME_STRING[pageData.post.mime]}`}</div>
@@ -79,12 +78,11 @@ export default function PostPage() {
                 {pageData.post.inbox && <div>In inbox</div>}
                 {pageData.post.trash && <div>In trash</div>}
                 <div><b><a href={link} target="_blank" rel="noreferrer" download>Download This File</a></b></div>
-              </div>
+              </SidebarBlock>
               {pageData.post.sources.length > 0 &&
-                <div className="namespace">
-                  <b>Sources</b>
+                <SidebarBlock name="sources" header="Sources">
                   {pageData.post.sources.map(url => <SourceLink key={url} url={url} />)}
-                </div>
+                </SidebarBlock>
               }
               <Tags tags={pageData.post.tags} grouped />
               {staticNotes.map((note, id) => (
@@ -110,3 +108,20 @@ export default function PostPage() {
   );
 }
 
+interface SidebarBlockProps {
+  name: string;
+  header: string;
+  children: React.ReactNode;
+}
+
+function SidebarBlock({ name, header, children }: SidebarBlockProps) {
+  const [collapsed, setCollapsed] = useLocalStorage(`collapsed.${name}`, true);
+  const toggle = useCallback(() => setCollapsed(!collapsed), [collapsed, setCollapsed]);
+  
+  return (
+    <div className={`namespace collapsible${collapsed ? " collapsed" : ""}`}>
+      <b onClick={toggle}>{header}</b>
+      {!collapsed && children}
+    </div>
+  );
+}

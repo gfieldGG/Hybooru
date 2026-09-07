@@ -16,16 +16,16 @@ export default function IndexPage() {
   const config = useConfig();
   const [theme] = useTheme();
   const [showMotd, setShowMotd] = useState(true);
-
+  
   useChange(theme, () => {
     setShowMotd(false);
     refresh();
   });
-
+  
   useChange(pageData, () => {
     setShowMotd(true);
   });
-
+  
   return (
     <div className="IndexPage">
       {config.expectMotd &&
