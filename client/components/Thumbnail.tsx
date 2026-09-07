@@ -21,12 +21,13 @@ export interface ThumbnailProps {
   masonry?: boolean;
 }
 
+const MASONRY_MAX_RATIO = 2.5;
+
 export function thumbnailBoxSize(post: PostSummary, config: Config, masonry?: boolean): [number, number] {
   const [boxWidth, boxHeight] = config.thumbnailSize;
   
   if(masonry && config.thumbnailsMode === ThumbnailsMode.FIT && post.width && post.height) {
-    const scale = Math.min(boxWidth / post.width, boxHeight / post.height);
-    return [boxWidth, Math.round(post.height * scale)];
+    return [boxWidth, Math.round(Math.min(boxWidth * post.height / post.width, boxWidth * MASONRY_MAX_RATIO))];
   }
   
   return [boxWidth, boxHeight];
@@ -68,8 +69,8 @@ export default function Thumbnail({ id, post, noFade, onClick, useId, label, mas
              fade && "fade",
              loaded && "loaded",
              unknown && "unknown",
-             config.thumbnailsMode === ThumbnailsMode.FILL && "fill",
-             config.thumbnailsMode === ThumbnailsMode.FIT && "fit",
+             (masonry || config.thumbnailsMode === ThumbnailsMode.FILL) && "fill",
+             !masonry && config.thumbnailsMode === ThumbnailsMode.FIT && "fit",
            )}
            data-ext={post.extension.slice(1)}
            style={{

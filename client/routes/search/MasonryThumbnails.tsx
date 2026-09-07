@@ -5,7 +5,8 @@ import useConfig from "../../hooks/useConfig";
 import Thumbnail, { ThumbnailProps, thumbnailBoxSize } from "../../components/Thumbnail";
 import { EM_SIZE } from "../../App";
 
-const THUMBNAIL_MARGIN = 1;
+// total gutter between cells, must match .posts.masonry .Thumbnail margins in SearchPage.scss
+const GUTTER = 0.25;
 
 export type MasonryThumbnailsProps = { posts: PostSummary[] } & Partial<Omit<ThumbnailProps, "masonry">>;
 
@@ -65,11 +66,11 @@ function useColumnCount(columnWidthEm: number) {
 // eslint-disable-next-line prefer-arrow-callback,@typescript-eslint/naming-convention
 const MasonryThumbnails = React.memo(function MasonryThumbnails({ posts, ...rest }: MasonryThumbnailsProps) {
   const [config] = useConfig();
-  const columnWidthEm = config.thumbnailSize[0] / EM_SIZE + THUMBNAIL_MARGIN;
+  const columnWidthEm = config.thumbnailSize[0] / EM_SIZE + GUTTER;
   const { ref, columnCount } = useColumnCount(columnWidthEm);
   
   const columns = useMemo(() => {
-    const heights = posts.map(post => thumbnailBoxSize(post, config, true)[1] / EM_SIZE + THUMBNAIL_MARGIN);
+    const heights = posts.map(post => thumbnailBoxSize(post, config, true)[1] / EM_SIZE + GUTTER);
     return distributeColumns(heights, columnCount);
   }, [posts, config, columnCount]);
   
