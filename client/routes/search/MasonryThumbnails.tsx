@@ -5,7 +5,7 @@ import useConfig from "../../hooks/useConfig";
 import Thumbnail, { ThumbnailProps } from "../../components/Thumbnail";
 import { EM_SIZE } from "../../App";
 
-const ROW_HEIGHT_FACTOR = 2 / 3;
+const ROW_HEIGHT_FACTOR = 1;
 const GAP_EM = 0.1;
 const MIN_RATIO = 0.4;
 const MAX_RATIO = 2.5;
