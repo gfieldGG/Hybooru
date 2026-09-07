@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { toast } from "react-toastify";
 import { DiagnosticsRequest, DiagnosticsResponse, SQLQueryPlan } from "../../../server/routes/apiTypes";
 import { fixedFormatTime } from "../../../server/helpers/utils";
-import { classJoin } from "../../helpers/utils";
+import { classJoin, copyText } from "../../helpers/utils";
 import requestJSON from "../../helpers/requestJSON";
 import useAsyncCallback from "../../hooks/useAsyncCallback";
 import Spinner from "../../components/Spinner";
@@ -270,15 +270,5 @@ function formatLiteral(value: any): string {
     }
     default:
       throw new Error(`Unsupported parameter type: ${typeof value}`);
-  }
-}
-
-async function copyText(name: string, text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast.success(`${name} copied to clipboard!`);
-  } catch(err) {
-    console.error(err);
-    toast.error(`Failed to copy to clipboard: ${err}`);
   }
 }

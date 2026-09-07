@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import { PostPageData, Relation } from "../../../server/routes/apiTypes";
 import { fileUrl, MIME_STRING } from "../../../server/helpers/consts";
-import { parseDuration, parseSize } from "../../helpers/utils";
+import { copyText, parseDuration, parseSize } from "../../helpers/utils";
 import usePageData from "../../hooks/usePageData";
 import useLocalStorage from "../../hooks/useLocalStorage";
 import useConfig from "../../hooks/useConfig";
@@ -28,6 +28,9 @@ export default function PostPage() {
     if(!pageData?.post) return [];
     else return [...pageData.post.relations, pageData.post].sort((a, b) => a.id - b.id);
   }, [pageData?.post]);
+  
+  const sha256 = pageData?.post.sha256;
+  const onCopyFileId = useCallback(() => sha256 && copyText("FileId", sha256), [sha256]);
   
   if(!pageData) {
     return (
@@ -73,6 +76,7 @@ export default function PostPage() {
                 <div>Posted: {new Date(pageData.post.posted).toLocaleString()}</div>
                 {pageData.post.inbox && <div>In inbox</div>}
                 {pageData.post.trash && <div>In trash</div>}
+                <div><b><a className="copyFileId" onClick={onCopyFileId}>Copy FileId</a></b></div>
                 <div><b><a href={link} target="_blank" rel="noreferrer" download>Download This File</a></b></div>
               </SidebarBlock>
               {pageData.post.sources.length > 0 &&

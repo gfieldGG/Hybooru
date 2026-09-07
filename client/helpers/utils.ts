@@ -1,4 +1,5 @@
 import qs from "qs";
+import { toast } from "react-toastify";
 
 export function classJoin(...classes: Array<string | null | undefined | false>) {
   return classes.filter(x => x).join(" ") || undefined;
@@ -53,4 +54,14 @@ export function parseDuration(duration: number) {
   }
   
   return text;
+}
+
+export async function copyText(name: string, text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success(`${name} copied to clipboard!`);
+  } catch(err) {
+    console.error(err);
+    toast.error(`Failed to copy to clipboard: ${err}`);
+  }
 }
