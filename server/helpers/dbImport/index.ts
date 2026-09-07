@@ -194,9 +194,46 @@ async function importOptions(hydrus: Database, postgres: PoolClient) {
       )
   `);
   
+  options.thumbnail_dpr_percent = getThumbnailDprPercent(hydrus);
+  
   updateProgress(true, "Importing options... ");
   
   return options;
+}
+
+const SERIALISABLE_TYPE_CLIENT_OPTIONS = 22;
+const META_SERIALISABLE_TYPE_HYDRUS_SERIALISABLE = 2;
+
+// [type, version, [[metaKey, metaValue], ...]]
+function parseSerialisableDictionary(tuple: any): Record<string, any> {
+  const result: Record<string, any> = {};
+  if(!Array.isArray(tuple) || !Array.isArray(tuple[2])) return result;
+  
+  for(const [metaKey, metaValue] of tuple[2]) {
+    if(!Array.isArray(metaKey) || !Array.isArray(metaValue)) continue;
+    const key = metaKey[1];
+    if(typeof key !== "string") continue;
+    
+    result[key] = metaValue[0] === META_SERIALISABLE_TYPE_HYDRUS_SERIALISABLE ? parseSerialisableDictionary(metaValue[1]) : metaValue[1];
+  }
+  
+  return result;
+}
+
+function getThumbnailDprPercent(hydrus: Database): number {
+  try {
+    const row = hydrus.prepare('SELECT dump FROM json_dumps WHERE dump_type = ?').get(SERIALISABLE_TYPE_CLIENT_OPTIONS);
+    if(!row) return 100;
+    
+    const dump = Buffer.isBuffer(row.dump) ? row.dump.toString("utf-8") : row.dump;
+    const clientOptions = parseSerialisableDictionary(JSON.parse(dump));
+    const dpr = clientOptions.integers?.thumbnail_dpr_percent;
+    
+    return typeof dpr === "number" && dpr > 0 ? dpr : 100;
+  } catch(e) {
+    console.error(chalk.yellow(`Unable to read thumbnail_dpr_percent from hydrus, assuming 100%: ${e}`));
+    return 100;
+  }
 }
 
 async function resolveFileRelations(hydrus: Database, postgres: PoolClient) {
@@ -642,11 +679,16 @@ async function calculateStatistics(postgres: PoolClient, options: any) {
   
   const untagged = await postsController.search({ query: configs.tags.untagged }, postgres);
   
+  // hydrus truncates, see HydrusImageHandling.GetThumbnailResolution
+  const dpr = options.thumbnail_dpr_percent / 100;
+  const thumbnailWidth = Math.trunc(options.thumbnail_dimensions[0] * dpr);
+  const thumbnailHeight = Math.trunc(options.thumbnail_dimensions[1] * dpr);
+  
   await postgres.query(SQL`
     INSERT INTO global(thumbnail_width, thumbnail_height, posts, tags, mappings, needs_tags)
     SELECT
-      ${options.thumbnail_dimensions[0]} AS thumbnail_width,
-      ${options.thumbnail_dimensions[1]} AS thumbnail_height,
+      ${thumbnailWidth} AS thumbnail_width,
+      ${thumbnailHeight} AS thumbnail_height,
       (SELECT COUNT(1) FROM posts) AS posts,
       (SELECT COUNT(1) FROM tags) AS tags,
       (SELECT COUNT(1) FROM mappings) AS mappings,
