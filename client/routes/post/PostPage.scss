@@ -68,6 +68,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      container-type: size;
 
       a:not(.File) {
         display: flex;
@@ -84,6 +85,14 @@
         max-width: 100%;
         max-height: 100%;
         pointer-events: all;
+        // fill the available area while keeping the box equal to the media rect (notes are positioned relative to it)
+        // files without dimensions have no --aspect, so width falls back to auto
+        width: min(100cqw, calc(100cqh * var(--aspect)));
+
+        .image, .video {
+          width: 100%;
+          height: auto;
+        }
       }
     }
 
@@ -121,8 +130,11 @@
     }
 
     .fileWrap {
+      container-type: inline-size;
+
       .File {
         max-height: unset !important;
+        width: 100cqw;
       }
     }
 

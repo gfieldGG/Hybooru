@@ -185,9 +185,13 @@ interface FileWrapProps {
   children?: React.ReactNode;
 }
 
+// CSS custom property consumed by the stylesheets to size .File to the available area
+const ASPECT_PROPERTY = "--aspect" as string;
+
 function FileWrap({ className, width, height, link, notes, children }: FileWrapProps) {
-  const style = (width !== undefined && height !== undefined) ? {
+  const style: React.CSSProperties | undefined = (width !== undefined && height !== undefined) ? {
     aspectRatio: `${width} / ${height}`,
+    [ASPECT_PROPERTY]: String(width / height),
   } : undefined;
   
   const domNotes = notes?.map((note, id) => (

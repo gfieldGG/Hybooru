@@ -16,6 +16,8 @@ html {
   --text-color: black;
   --accent-color: #47a2ff;
 
+  scrollbar-gutter: stable;
+
   &.dimmed {
     overflow: hidden;
   }

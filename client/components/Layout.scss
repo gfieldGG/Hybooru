@@ -9,7 +9,7 @@
   display: flex;
 
   & > .sidebar {
-    width: 15em;
+    width: 12em;
     height: 100vh;
     border-right: 1px solid rgba(127, 127, 127, 0.2);
     position: sticky;
@@ -53,7 +53,7 @@
   & > .header {
     position: fixed;
     top: 0;
-    left: 15rem;
+    left: 12rem;
     right: 0;
     max-height: 4rem;
     transition: max-height 0.1s ease-in-out, background-color 0.1s, box-shadow 0.1s;
