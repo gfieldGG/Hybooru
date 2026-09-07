@@ -1,30 +1,37 @@
+import { Writable } from "stream";
+import { Statement } from "better-sqlite3";
 import { Import } from "./import";
 
 export default class Urls extends Import {
   display = "Urls";
   batchSizeMul = 1 / 2;
   
+  initialKey = [-1, -1];
   outputTable = "urls";
-  // CROSS JOIN keeps urls as the outer loop, otherwise SQLite sorts every batch
   totalQuery = () => `
     SELECT count(1)
-    FROM urls
-      INNER JOIN url_map ON url_map.url_id = urls.url_id
-      CROSS JOIN temp.kept_posts kept ON kept.hash_id = url_map.hash_id
+    FROM temp.kept_posts kept
+      CROSS JOIN url_map ON url_map.hash_id = kept.hash_id
+      CROSS JOIN urls ON urls.url_id = url_map.url_id
   `;
   
   outputQuery = (table: string) => `COPY ${table}(id, postid, url) FROM STDIN (FORMAT CSV)`;
   inputQuery = () => `
     SELECT
-      urls.url_id,
+      kept.hash_id,
+      url_map.url_id,
       urls.url_id || ',' ||
       url_map.hash_id || ',"' ||
       REPLACE(urls.url, '"', '""') || '"\n'
-    FROM urls
-      CROSS JOIN url_map ON url_map.url_id = urls.url_id
-      CROSS JOIN temp.kept_posts kept ON kept.hash_id = url_map.hash_id
-    WHERE urls.url_id > ?
-    ORDER BY urls.url_id
+    FROM temp.kept_posts kept
+      CROSS JOIN url_map ON url_map.hash_id = kept.hash_id
+      CROSS JOIN urls ON urls.url_id = url_map.url_id
+    WHERE kept.hash_id >= ? AND (kept.hash_id > ? OR url_map.url_id > ?)
+    ORDER BY kept.hash_id, url_map.url_id
     LIMIT ?
   `;
+  
+  importBatch(lastKey: any[], limit: number, input: Statement, output: Writable) {
+    return super.importBatch([lastKey[0], ...lastKey], limit, input, output);
+  }
 }

@@ -7,13 +7,28 @@ DELETE FROM notes WHERE NOT EXISTS (SELECT 1 FROM posts WHERE id = postid);
 CREATE INDEX ON notes(postid);
 ALTER TABLE notes ADD CONSTRAINT notes_postid_fkey FOREIGN KEY (postid) REFERENCES posts(id) ON DELETE CASCADE;
 
-DELETE FROM mappings WHERE NOT EXISTS (SELECT 1 FROM posts WHERE id = postid);
-DELETE FROM mappings WHERE NOT EXISTS (SELECT 1 FROM tags WHERE id = tagid);
-DELETE FROM tags WHERE NOT EXISTS (SELECT 1 FROM mappings WHERE mappings.tagid = tags.id)
-                   AND NOT EXISTS (SELECT 1
-                                   FROM mappings
-                                   INNER JOIN tag_siblings ON tag_siblings.betterid = mappings.tagid
-                                   WHERE tag_siblings.tagid = tags.id);
+CREATE TABLE mappings_kept (LIKE mappings INCLUDING DEFAULTS);
+INSERT INTO mappings_kept
+  SELECT * FROM mappings
+  WHERE EXISTS (SELECT 1 FROM posts WHERE id = postid)
+    AND EXISTS (SELECT 1 FROM tags WHERE id = tagid);
+DROP TABLE mappings;
+ALTER TABLE mappings_kept RENAME TO mappings;
+ALTER TABLE mappings ADD CONSTRAINT mappings_pkey PRIMARY KEY (postid, tagid);
+
+CREATE TABLE tags_kept (LIKE tags INCLUDING DEFAULTS);
+INSERT INTO tags_kept
+  SELECT * FROM tags
+  WHERE id IN (SELECT tagid FROM mappings
+               UNION
+               SELECT tag_siblings.tagid
+               FROM mappings
+               INNER JOIN tag_siblings ON tag_siblings.betterid = mappings.tagid);
+DROP TABLE tags;
+ALTER TABLE tags_kept RENAME TO tags;
+ALTER TABLE tags ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
+ANALYZE mappings, tags;
+
 ALTER TABLE mappings ADD CONSTRAINT mappings_postid_fkey FOREIGN KEY (postid) REFERENCES posts(id) ON DELETE CASCADE,
                      ADD CONSTRAINT mappings_tagid_fkey FOREIGN KEY (tagid) REFERENCES tags(id) ON DELETE CASCADE;
 CREATE INDEX ON mappings(tagid);

@@ -14,7 +14,6 @@ export default class Posts extends Import {
   totalQuery = () => `
     SELECT count(1)
     FROM ${this.inputTable()} current_files
-      LEFT JOIN file_inbox ON file_inbox.hash_id = current_files.hash_id
     WHERE ${this.systemFilterQuery()}
   `;
   
@@ -60,8 +59,8 @@ export default class Posts extends Import {
     if(trash ? !this.systemFilter.allowTrash : !this.systemFilter.allowNotTrash) conditions.push("0");
     
     if(!this.systemFilter.allowInbox && !this.systemFilter.allowArchive) conditions.push("0");
-    else if(!this.systemFilter.allowInbox) conditions.push("file_inbox.hash_id IS NULL");
-    else if(!this.systemFilter.allowArchive) conditions.push("file_inbox.hash_id IS NOT NULL");
+    else if(!this.systemFilter.allowInbox) conditions.push("NOT EXISTS (SELECT 1 FROM file_inbox WHERE file_inbox.hash_id = current_files.hash_id)");
+    else if(!this.systemFilter.allowArchive) conditions.push("EXISTS (SELECT 1 FROM file_inbox WHERE file_inbox.hash_id = current_files.hash_id)");
     
     return conditions.length > 0 ? conditions.join(" AND ") : "1";
   }
