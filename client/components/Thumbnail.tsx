@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { BlurhashCanvas } from "react-blurhash-async";
-import { PostSummary, ThumbnailsMode } from "../../server/routes/apiTypes";
+import { Config, PostSummary, ThumbnailsMode } from "../../server/routes/apiTypes";
 import { thumbnailUrl } from "../../server/helpers/consts";
 import { classJoin } from "../helpers/utils";
 import useLocalStorage from "../hooks/useLocalStorage";
@@ -18,9 +18,21 @@ export interface ThumbnailProps {
   onClick?: (ev: React.MouseEvent<HTMLAnchorElement>, post: number) => void;
   useId?: boolean;
   label?: React.ReactNode;
+  masonry?: boolean;
 }
 
-export default function Thumbnail({ id, post, noFade, onClick, useId, label }: ThumbnailProps) {
+export function thumbnailBoxSize(post: PostSummary, config: Config, masonry?: boolean): [number, number] {
+  const [boxWidth, boxHeight] = config.thumbnailSize;
+  
+  if(masonry && config.thumbnailsMode === ThumbnailsMode.FIT && post.width && post.height) {
+    const scale = Math.min(boxWidth / post.width, boxHeight / post.height);
+    return [boxWidth, Math.round(post.height * scale)];
+  }
+  
+  return [boxWidth, boxHeight];
+}
+
+export default function Thumbnail({ id, post, noFade, onClick, useId, label, masonry }: ThumbnailProps) {
   const SSR = useSSR();
   const [config] = useConfig();
   const ref = useRef<HTMLImageElement>(null);
@@ -47,6 +59,8 @@ export default function Thumbnail({ id, post, noFade, onClick, useId, label }: T
   if(config.thumbnailsMode === ThumbnailsMode.FIT && post.width && post.height) aspectRatio = post.width / post.height;
   else aspectRatio = config.thumbnailSize[0] / config.thumbnailSize[1];
   
+  const [boxWidth, boxHeight] = thumbnailBoxSize(post, config, masonry);
+  
   return (
     <Link className="Thumbnail" to={`/posts/${post.id}${query}`} onClick={onClickLink}>
       <div className={classJoin(
@@ -59,8 +73,8 @@ export default function Thumbnail({ id, post, noFade, onClick, useId, label }: T
            )}
            data-ext={post.extension.slice(1)}
            style={{
-             width: config.thumbnailSize[0] / EM_SIZE + "em",
-             height: config.thumbnailSize[1] / EM_SIZE + "em",
+             width: boxWidth / EM_SIZE + "em",
+             height: boxHeight / EM_SIZE + "em",
            }}>
         {!SSR && blurhash && post.blurhash && (
           <BlurhashCanvas className="Blurhash"

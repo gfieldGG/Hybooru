@@ -11,12 +11,14 @@ import Thumbnail, { ThumbnailProps } from "../../components/Thumbnail";
 import Pagination from "../../components/Pagination";
 import Spinner from "../../components/Spinner";
 import GalleryPopup from "./GalleryPopup";
+import MasonryThumbnails from "./MasonryThumbnails";
 import "./SearchPage.scss";
 
 export default function SearchPage() {
   const { postsCache, fetching, requestNext, reset, error, resetError } = usePostsCache();
   const [pagination] = useLocalStorage("pagination", false);
   const [popupEnabled] = useLocalStorage("popup", false);
+  const [masonry] = useLocalStorage("masonry", false);
   const SSR = useSSR();
   const history = useHistory();
   const search = qsParse(history.location.search);
@@ -27,6 +29,7 @@ export default function SearchPage() {
   lastPostsCache.current = postsCache;
   
   const usePagination = pagination || SSR || search.page !== undefined;
+  const useMasonry = masonry && !SSR;
   const pageCount = Math.ceil((postsCache.total || 0) / postsCache.pageSize);
   const end = postsCache.total && postsCache.posts.length >= postsCache.total;
   
@@ -132,10 +135,15 @@ export default function SearchPage() {
     <Layout className="SearchPage" dimmed={popup !== null}
             extraLink={postsCache.total !== null && <div className="total">Results: {postsCache.total}</div>}
             sidebar={<Tags tags={postsCache.tags} searchMod />}>
-      <div className="posts">
-        <Thumbnails posts={postsCache.posts} noFade={noFade} onClick={onThumbnailClick} />
-        {new Array(16).fill(null).map((v, id) => <div key={id} className="placeholder" />)}
-      </div>
+      {useMasonry
+        ? <MasonryThumbnails posts={postsCache.posts} noFade={noFade} onClick={onThumbnailClick} />
+        : (
+          <div className="posts">
+            <Thumbnails posts={postsCache.posts} noFade={noFade} onClick={onThumbnailClick} />
+            {new Array(16).fill(null).map((v, id) => <div key={id} className="placeholder" />)}
+          </div>
+        )
+      }
       {footer}
       <GalleryPopup posts={postsCache.posts} id={popup} setId={setPopup} />
     </Layout>

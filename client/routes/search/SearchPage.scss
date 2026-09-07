@@ -32,6 +32,18 @@
         width: 7.5em;
         margin: 0 0.5em;
       }
+
+      &.masonry {
+        flex-wrap: nowrap;
+        align-items: flex-start;
+
+        .column {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          flex-shrink: 0;
+        }
+      }
     }
 
     .bottomPad {

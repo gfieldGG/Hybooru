@@ -21,12 +21,14 @@ export default function SettingsMenu({ open = false, simpleSettings = false, ...
   
   const [pagination, setPagination] = useLocalStorage("pagination", false);
   const [popup, setPopup] = useLocalStorage("popup", false);
+  const [masonry, setMasonry] = useLocalStorage("masonry", false);
   const [namespaces, setNamespaces] = useLocalStorage("namespaces", false);
   const [fullHeight, setFullHeight] = useLocalStorage("fullHeight", false);
   const [thumbnailFade, setThumbnailFade] = useLocalStorage("thumbnailFade", true);
   const [blurhash, setBlurhash] = useLocalStorage("blurhash", false);
   const togglePagination = useCallback((ev: React.MouseEvent) => { ev.preventDefault(); setPagination(!pagination); }, [pagination, setPagination]);
   const togglePopup = useCallback((ev: React.MouseEvent) => { ev.preventDefault(); setPopup(!popup); }, [popup, setPopup]);
+  const toggleMasonry = useCallback((ev: React.MouseEvent) => { ev.preventDefault(); setMasonry(!masonry); }, [masonry, setMasonry]);
   const toggleNamespaces = useCallback((ev: React.MouseEvent) => { ev.preventDefault(); setNamespaces(!namespaces); }, [namespaces, setNamespaces]);
   const toggleFullHeight = useCallback((ev: React.MouseEvent) => { ev.preventDefault(); setFullHeight(!fullHeight); }, [fullHeight, setFullHeight]);
   const toggleThumbnailFade = useCallback((ev: React.MouseEvent) => { ev.preventDefault(); setThumbnailFade(!thumbnailFade); }, [thumbnailFade, setThumbnailFade]);
@@ -129,6 +131,7 @@ export default function SettingsMenu({ open = false, simpleSettings = false, ...
       {extraSettings}
       <div><a href="#" onClick={togglePagination}>Auto Paging: {!pagination ? "Yes" : "No"}</a></div>
       <div><a href="#" onClick={togglePopup}>Popup Gallery: {popup ? "Yes" : "No"}</a></div>
+      <div><a href="#" onClick={toggleMasonry}>Masonry Layout: {masonry ? "Yes" : "No"}</a></div>
       <div><a href="#" onClick={toggleNamespaces}>Hide Namespaces: {namespaces ? "No" : "Yes"}</a></div>
       <div><a href="#" onClick={toggleFullHeight}>Limit Img Height: {fullHeight ? "No" : "Yes"}</a></div>
       <div><a href="#" onClick={toggleThumbnailFade}>Thumbnail Fade: {thumbnailFade ? "Yes" : "No"}</a></div>
