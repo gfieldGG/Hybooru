@@ -532,25 +532,16 @@ async function removeIgnored(postgres: PoolClient) {
   
   const ignored = configs.tags.ignore.map(pat => preparePattern(pat));
   
-  const result = await postgres.query<{ id: number }>(SQL`
-    DELETE FROM tags
-    USING unnest(${ignored}::TEXT[]) pat
-    WHERE tags.name LIKE pat OR tags.subtag LIKE pat
-    RETURNING id
-  `);
-  
   await postgres.query(SQL`
     DELETE FROM tags
-    USING unnest(${result.rows.map(row => row.id)}::INTEGER[]) deleted
-    LEFT JOIN tag_siblings ON tag_siblings.tagid = deleted
-    WHERE tag_siblings.betterid = tags.id
-  `);
-  
-  await postgres.query(SQL`
-    DELETE FROM tags
-    USING unnest(${result.rows.map(row => row.id)}::INTEGER[]) deleted
-    LEFT JOIN tag_siblings ON tag_siblings.betterid = deleted
-    WHERE tag_siblings.tagid = tags.id
+    WHERE EXISTS(
+      SELECT 1
+      FROM unnest(${ignored}::TEXT[]) pat
+      LEFT JOIN tag_siblings ON tag_siblings.tagid = tags.id
+      LEFT JOIN tags better ON better.id = tag_siblings.betterid
+      WHERE COALESCE(better.name, tags.name) LIKE pat
+         OR COALESCE(better.subtag, tags.subtag) LIKE pat
+    )
   `);
   
   updateProgress(true, "Removing ignored tags...");
