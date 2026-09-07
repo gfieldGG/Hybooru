@@ -38,9 +38,16 @@
         flex-wrap: nowrap;
         align-items: stretch;
 
+        overflow: hidden;
+
         .row {
-          display: grid;
-          justify-content: center;
+          display: flex;
+          flex-wrap: nowrap;
+        }
+
+        .cell {
+          flex: 0 0 auto;
+          height: 100%;
         }
 
         .Thumbnail {
