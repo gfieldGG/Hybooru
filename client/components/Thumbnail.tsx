@@ -60,7 +60,7 @@ export default function Thumbnail({ id, post, noFade, onClick, useId, label }: T
            data-ext={post.extension.slice(1)}
            style={{
              width: config.thumbnailSize[0] / EM_SIZE + "em",
-             height: config.thumbnailSize[1] / EM_SIZE + "em",
+             aspectRatio: `${config.thumbnailSize[0]} / ${config.thumbnailSize[1]}`,
            }}>
         {!SSR && blurhash && post.blurhash && (
           <BlurhashCanvas className="Blurhash"
