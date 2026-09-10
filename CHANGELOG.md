@@ -15,6 +15,9 @@
 
 # Unreleased
 
+
+# v1.16.0
+
 - Added support for multiple file/thumbnail locations
 - Added experimental honeypot feature
 - Added `proxy` config field
