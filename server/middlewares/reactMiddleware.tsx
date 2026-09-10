@@ -50,8 +50,7 @@ export interface SSROptions {
   ogVideo?: OGVideo;
   ogUrl?: string;
   ogSiteName?: string;
-  noIndex?: boolean;
-  soft404?: boolean;
+  noIndex?: boolean | string;
 }
 
 declare module "express-serve-static-core" {
@@ -72,10 +71,9 @@ export default function reactMiddleware(req: expressCore.RequestEx<any, any, any
       const theme = req.cookies.theme || Theme.AUTO;
       const config = await globalController.getConfig();
       const title = options?.title ? `${options?.title} | ${config.appName}` : config.appName;
+      const noIndex = options?.noIndex === true ? 'noindex' : options?.noIndex;
       
-      if(options?.noIndex) {
-        res.header('X-Robots-Tag', 'noindex');
-      }
+      if(noIndex) res.header('X-Robots-Tag', noIndex);
       
       // noinspection JSUnreachableSwitchBranches
       switch(req.accepts(['html', 'json'])) {
@@ -85,8 +83,8 @@ export default function reactMiddleware(req: expressCore.RequestEx<any, any, any
             break;
           }
           
-          if(configs.honeypot?.enabled && req.ip) {
-            config.honeyPot = { ip: req.ip };
+          if(configs.experimental.honeypot?.enabled && req.ip) {
+            config.honeypot = { ip: req.ip };
           }
           
           const initialDataEx: InitialData = {
@@ -111,8 +109,6 @@ export default function reactMiddleware(req: expressCore.RequestEx<any, any, any
           }
           
           const initialDataJSON = JSON.stringify(initialDataEx).replace(removeTags, tag => tagsToReplace[tag] || tag);
-          
-          if(options?.soft404) res.status(404);
           
           res.send(index({
             reactContent,

@@ -15,6 +15,7 @@ import PostPage from "./routes/post/PostPage";
 import RandomPage from "./routes/random/RandomPage";
 import TagsPage from "./routes/tags/TagsPage";
 import LockPage from "./routes/lock/LockPage";
+import HoneypotPage from "./routes/honeypot/HoneypotPage";
 import ErrorPage from "./routes/error/ErrorPage";
 import "./globals.scss";
 
@@ -25,7 +26,7 @@ interface AppProps {
 const MIN_PAGE_SIZE = 612;
 export const EM_SIZE = 20;
 
-const notFoundError = new ClientError({ code: 404, message: "Page Not Found" });
+const notFoundError = new ClientError({ code: 404, message: "Page Not Found", stack: "<static error>" });
 
 export default function App({ initialData }: AppProps) {
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function App({ initialData }: AppProps) {
                 <Route path="/random" component={RandomPage} />
                 <Route path="/diagnostics" component={DiagnosticsPage} />
                 <Route path="/lock" component={LockPage} />
+                <Route path="/honeypot/:payload" component={HoneypotPage} />
                 <Route path="/" component={IndexPage} />
                 <ErrorPage error={notFoundError} />
               </Switch>

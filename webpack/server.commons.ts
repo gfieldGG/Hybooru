@@ -7,6 +7,7 @@ const root = process.cwd();
 
 export const pureESM = [
   "wouter",
+  "wouter/use-browser-location",
   "chalk",
 ];
 

@@ -25,8 +25,8 @@ interface Configs {
   db: pg.PoolConfig,
   posts: {
     services: Array<string | number> | null,
-    filesPathOverride: string | null,
-    thumbnailsPathOverride: string | null,
+    filesPathOverride: string | string[] | null,
+    thumbnailsPathOverride: string | string[] | null,
     thumbnailsMode: string,
     pageSize: number,
     cachePages: number,
@@ -52,15 +52,20 @@ interface Configs {
     /** @deprecated */
     serviceName?: string | null,
   } | null,
-  honeypot: {
-    enabled: boolean,
-  } | null,
   versionCheck: {
     enabled: boolean,
     owner: string,
     repo: string,
     cacheLifeMs: number
   } | null,
+  experimental: {
+    honeypot: {
+      enabled: boolean,
+      depth: number,
+      webhook: string,
+      token: string,
+    } | null,
+  },
 }
 
 let configs: Configs = {
@@ -109,14 +114,14 @@ let configs: Configs = {
     stars: 5,
     service: null,
   },
-  honeypot: {
-    enabled: false,
-  },
   versionCheck: {
     enabled: true,
     owner: "funmaker",
     repo: "hybooru",
     cacheLifeMs: 3600000
+  },
+  experimental: {
+    honeypot: null,
   }
 };
 

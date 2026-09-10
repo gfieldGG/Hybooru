@@ -119,7 +119,7 @@ export interface Config {
   thumbnailsMode: ThumbnailsMode;
   busy: boolean;
   sortPresets: string[];
-  honeyPot: {
+  honeypot: {
     ip: string;
   } | null;
 }
@@ -179,6 +179,11 @@ export interface LockPageResponse {
   isLocked: boolean;
   lockName: string | null;
   redirect: string;
+}
+
+export interface HoneypotPayload {
+  salt: string;
+  ips: string[];
 }
 
 export interface ErrorResponse {

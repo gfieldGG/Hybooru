@@ -5,6 +5,7 @@ import { namespaceRegex } from "../../server/helpers/consts";
 import useLocalStorage from "../hooks/useLocalStorage";
 import useQuery from "../hooks/useQuery";
 import "./Tags.scss";
+import Honeypot from "./Honeypot";
 
 export interface TagsProps {
   tags: Record<string, number>;
@@ -67,6 +68,13 @@ function Namespace({ header, members, tags, searchMod, sorted, showNamespaces }:
   return (
     <div className="namespace">
       {header && <b>{header}</b>}
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
       {sortedMembers.map(tag => <Tag key={tag} searchMod={searchMod} tag={tag} tags={tags} showNamespace={showNamespaces} />)}
     </div>
   );
@@ -125,6 +133,14 @@ function Tag({ searchMod, tag, tags, showNamespace }: TagProps) {
   
   return (
     <div>
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
+      <Honeypot />
       {searchMod && <>
         <Link className="btn" to={addLink} rel="nofollow">{addCh}</Link>
         <Link className="btn" to={delLink} rel="nofollow">{delCh}</Link>

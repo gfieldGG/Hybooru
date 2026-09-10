@@ -1,0 +1,11 @@
+
+.HoneypotPage > .content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  .wrap {
+    display: inline-block;
+    padding: 2rem;
+  }
+}

@@ -1,5 +1,7 @@
 import type ExpressCore from "express-serve-static-core";
 import express from "express";
+import axios from "axios";
+import chalk from "chalk";
 import { Theme } from "../../client/hooks/useTheme";
 import { qsStringify } from "../../client/helpers/utils";
 import { fileUrl, MIME_STRING, namespaceRegex, postTitle, prettifyTag } from "../helpers/consts";
@@ -13,7 +15,7 @@ import * as githubController from "../controllers/github";
 import * as postsController from "../controllers/posts";
 import * as globalController from "../controllers/global";
 import * as tagsController from "../controllers/tags";
-import { IndexPageResponse, LockPageResponse, LockPageRequest, Post, PostPageResponse, PostsSearchPageResponse, PostsSearchPageRequest, PostSummary, RandomPageResponse, RandomPageRequest, SetThemeRequest, TagsSearchPageResponse, TagsSearchPageRequest } from "../../types/api";
+import { IndexPageResponse, LockPageResponse, LockPageRequest, Post, PostPageResponse, PostsSearchPageResponse, PostsSearchPageRequest, PostSummary, RandomPageResponse, RandomPageRequest, SetThemeRequest, TagsSearchPageResponse, TagsSearchPageRequest, HoneypotPayload } from "../../types/api";
 
 export const router = express.Router();
 
@@ -54,7 +56,6 @@ router.get<never, PostsSearchPageResponse, PostsSearchPageRequest>('/posts', loc
     ogDescription: req.query.query,
     canonicalUrl: `${baseUrl(req)}/posts${qsStringify({ page: parseInt(req.query.page) || undefined })}`,
     noIndex: !!req.query.query,
-    soft404: results.posts.length === 0,
   });
 });
 
@@ -69,7 +70,6 @@ router.get<never, TagsSearchPageResponse, TagsSearchPageRequest>('/tags', lockMi
     ogDescription: req.query.query,
     canonicalUrl: `${baseUrl(req)}/tags${qsStringify({ page: parseInt(req.query.page) || undefined })}`,
     noIndex: !!req.query.query,
-    soft404: results.tags.length === 0,
   });
 });
 
@@ -115,6 +115,54 @@ router.get<never, LockPageResponse, LockPageRequest>('/lock', async (req, res) =
 router.get<never, Empty>('/diagnostics', async (req, res) => {
   res.react({}, {
     noIndex: true,
+  });
+});
+
+router.get<{ payload: string }, Empty>('/honeypot/:payload', async (req, res) => {
+  let payloadData;
+  
+  if(configs.experimental.honeypot) {
+    try {
+      payloadData = JSON.parse(atob(req.params.payload)) as HoneypotPayload;
+      
+      if(payloadData) {
+        const ips = [...payloadData.ips, req.ip];
+        const ipChain = ips.map(ip => chalk.whiteBright(ip)).join(" -> ");
+        const ban = ips.length > configs.experimental.honeypot.depth;
+        console.log(`${chalk.yellowBright.bold("HONEYPOT")} hit! ${chalk.gray(payloadData.salt)} ${ipChain}${ban ? " -> " + chalk.redBright("DING DONG BANNU") : ""}`);
+        
+        if(ban) {
+          const webhook = configs.experimental.honeypot.webhook;
+          const isSoc = webhook.startsWith("/") || webhook.startsWith(".") || webhook.startsWith("~");
+          await axios.request({
+            url: isSoc ? "/webhook" : webhook,
+            socketPath: isSoc ? webhook : undefined,
+            method: 'POST',
+            data: {
+              ip: req.ip,
+              reason: `Entered honeypot ${ips.length - 1} times`,
+              userAgent: req.headers['user-agent'],
+              extra: payloadData,
+            },
+            headers: {
+              // eslint-disable-next-line @typescript-eslint/naming-convention
+              Authorization: `Bearer ${configs.experimental.honeypot.token}`,
+            },
+          });
+          
+          await new Promise(res => setTimeout(res, 1000));
+          
+          res.socket?.end();
+        }
+      }
+    } catch(err: any) {
+      console.error(err);
+    }
+  }
+  
+  res.react({}, {
+    noIndex: "nofollow, noindex, none",
+    htmlRedirect: payloadData ? undefined : "/",
   });
 });
 

@@ -44,13 +44,13 @@
 		"service": null,
 		"stars": 5
 	},
-	"honeypot": {
-		"enabled": true
-	},
 	"versionCheck": {
 		"enabled": true,
 		"owner": "funmaker",
 		"repo": "hybooru",
 		"cacheLifeMs": 3600000
+	},
+	"experimental": {
+		"honeypot": null
 	}
 }

@@ -18,7 +18,7 @@ export async function getConfig(): Promise<Config> {
     thumbnailsMode: configs.posts.thumbnailsMode as ThumbnailsMode,
     busy: true,
     sortPresets: configs.tags.sortPresets ? Object.keys(configs.tags.sortPresets) : [],
-    honeyPot: null,
+    honeypot: null,
   };
   
   if(!db.dbLock.isLocked()) {

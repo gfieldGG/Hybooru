@@ -9,7 +9,7 @@ export const router = express.Router();
 
 export const connections = new Set<WebSocket>();
 
-registerWsRoute("/progress", (ws, req) => {
+registerWsRoute("/api/progress", (ws, req) => {
   try {
     if(!db.dbLock.isLocked()) ws.close();
     if(db.dbLock.lastMessage) ws.send(JSON.stringify(db.dbLock.lastMessage));

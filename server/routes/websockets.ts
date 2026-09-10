@@ -12,21 +12,29 @@ export function registerWsRoute(pathname: string, handler: WsHandler) {
 }
 
 export function onWsConnection(wss: WebSocketServer, request: IncomingMessage, soc: Duplex, head: NonSharedBuffer) {
-  const url = typeof request.url === "string" && new URL(request.url);
-  const handler = url && handlers[url.pathname];
-  if(!handler) {
-    abortHandshake(soc, 404, "Page Not Found");
-    return;
-  }
-  
-  wss.handleUpgrade(request, soc, head, ws => {
-    try {
-      handler(ws, request);
-    } catch(err: any) {
-      const message = err instanceof HTTPError ? err.message : "Internal Server Error";
-      ws.close(1011, message);
+  try {
+    let url = request.url;
+    if(url?.includes("#")) url = url.split("#")[0];
+    if(url?.includes("?")) url = url.split("?")[0];
+    
+    const handler = url && handlers[url];
+    if(!handler) {
+      abortHandshake(soc, 404, "Page Not Found");
+      return;
     }
-  });
+    
+    wss.handleUpgrade(request, soc, head, ws => {
+      try {
+        handler(ws, request);
+      } catch(err: any) {
+        const message = err instanceof HTTPError ? err.message : "Internal Server Error";
+        ws.close(1011, message);
+      }
+    });
+  } catch(err) {
+    console.error(err);
+    abortHandshake(soc, 500);
+  }
 }
 
 function abortHandshake(socket: Duplex, code: number, message: string | null = null, headers: Record<string, string> = {}) {
