@@ -254,20 +254,29 @@ async function importOptions(hydrus: Database, postgres: PoolClient) {
   return options;
 }
 
+const SERIALISABLE_TYPE_DICTIONARY = 21;
 const SERIALISABLE_TYPE_CLIENT_OPTIONS = 22;
 const META_SERIALISABLE_TYPE_HYDRUS_SERIALISABLE = 2;
 
-// [type, version, [[metaKey, metaValue], ...]]
+// SerialisableDictionary: [SERIALISABLE_TYPE_DICTIONARY, version, [[metaKey, metaValue], ...]]
+// meta values are [META_TYPE, value]; hydrus serialisables are [META_SERIALISABLE_TYPE_HYDRUS_SERIALISABLE, [type, version, info]]
+// Only nested dictionaries are unpacked, other serialisable types (lists, options objects, ...) are kept as raw tuples.
 function parseSerialisableDictionary(tuple: any): Record<string, any> {
   const result: Record<string, any> = {};
   if(!Array.isArray(tuple) || !Array.isArray(tuple[2])) return result;
   
-  for(const [metaKey, metaValue] of tuple[2]) {
+  for(const pair of tuple[2]) {
+    if(!Array.isArray(pair)) continue;
+    const [metaKey, metaValue] = pair;
     if(!Array.isArray(metaKey) || !Array.isArray(metaValue)) continue;
     const key = metaKey[1];
     if(typeof key !== "string") continue;
     
-    result[key] = metaValue[0] === META_SERIALISABLE_TYPE_HYDRUS_SERIALISABLE ? parseSerialisableDictionary(metaValue[1]) : metaValue[1];
+    const isNestedDictionary = metaValue[0] === META_SERIALISABLE_TYPE_HYDRUS_SERIALISABLE
+                            && Array.isArray(metaValue[1])
+                            && metaValue[1][0] === SERIALISABLE_TYPE_DICTIONARY;
+    
+    result[key] = isNestedDictionary ? parseSerialisableDictionary(metaValue[1]) : metaValue[1];
   }
   
   return result;
@@ -282,7 +291,12 @@ function getThumbnailDprPercent(hydrus: Database): number {
     const clientOptions = parseSerialisableDictionary(JSON.parse(dump));
     const dpr = clientOptions.integers?.thumbnail_dpr_percent;
     
-    return typeof dpr === "number" && dpr > 0 ? dpr : 100;
+    if(typeof dpr !== "number" || dpr <= 0) {
+      console.error(chalk.yellow(`thumbnail_dpr_percent not found in hydrus client options, assuming 100%`));
+      return 100;
+    }
+    
+    return dpr;
   } catch(e) {
     console.error(chalk.yellow(`Unable to read thumbnail_dpr_percent from hydrus, assuming 100%: ${e}`));
     return 100;
