@@ -27,4 +27,6 @@ router.get<{ filename: string }>("/:filename", async (req, res, next) => {
       });
     }
   }
+  
+  return next(new HTTPError(404));
 });

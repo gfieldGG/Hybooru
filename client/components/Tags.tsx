@@ -121,7 +121,7 @@ function Tag({ searchMod, tag, tags, showNamespace }: TagProps) {
     return {
       name,
       namespace,
-      link: getUrl(tag),
+      link: getUrl(tag, "/posts"),
       addLink: contains ? getUrl(removeTag(parts, tag)) : getUrl(appendTag(parts, tag)),
       delLink: containsNeg ? getUrl(removeTag(parts, tag)) : getUrl(appendTag(parts, tag, true)),
       addCh: contains ? "•" : "+",
