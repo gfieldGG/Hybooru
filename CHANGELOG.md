@@ -15,6 +15,9 @@
 
 # Unreleased
 
+
+# v1.16.1
+
 - Fixed requests hanging forever when requesting non-existent files
 - Fixed tags not directing to search results from the post page (#62)
 
