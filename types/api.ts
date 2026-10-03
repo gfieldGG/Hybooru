@@ -1,9 +1,7 @@
-
 // COMMON //
 
-import { Mime } from "../helpers/consts";
-import { Theme } from "../../client/hooks/useTheme";
-
+import { Mime } from "../server/helpers/consts";
+import { Theme } from "../client/hooks/useTheme";
 
 export interface PostSummary {
   id: number;
@@ -122,6 +120,9 @@ export interface Config {
   thumbnailsMode: ThumbnailsMode;
   busy: boolean;
   sortPresets: string[];
+  honeypot: {
+    ip: string;
+  } | null;
 }
 
 // PAGES //
@@ -134,7 +135,7 @@ export interface InitialData {
   [k: string]: any;
 }
 
-export interface IndexPageData {
+export interface IndexPageResponse {
   stats: Stats;
   updateUrl: string | null;
   motd: PostSummary | null;
@@ -145,11 +146,11 @@ export interface PostsSearchPageRequest {
   page?: number;
 }
 
-export interface PostsSearchPageData {
+export interface PostsSearchPageResponse {
   results: PostSearchResults;
 }
 
-export interface PostPageData {
+export interface PostPageResponse {
   post: Post;
 }
 
@@ -159,7 +160,7 @@ export interface TagsSearchPageRequest {
   page?: number;
 }
 
-export interface TagsSearchPageData {
+export interface TagsSearchPageResponse {
   results: TagsSearchFullResults;
 }
 
@@ -167,7 +168,7 @@ export interface RandomPageRequest {
   query?: string;
 }
 
-export interface RandomPageData {
+export interface RandomPageResponse {
   redirect: string;
 }
 
@@ -175,10 +176,15 @@ export interface LockPageRequest {
   redirect?: string;
 }
 
-export interface LockPageData {
+export interface LockPageResponse {
   isLocked: boolean;
   lockName: string | null;
   redirect: string;
+}
+
+export interface HoneypotPayload {
+  salt: string;
+  ips: string[];
 }
 
 export interface ErrorResponse {

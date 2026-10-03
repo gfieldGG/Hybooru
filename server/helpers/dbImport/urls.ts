@@ -31,7 +31,7 @@ export default class Urls extends Import {
     LIMIT ?
   `;
   
-  importBatch(lastKey: any[], limit: number, input: Statement, output: Writable) {
+  importBatch(lastKey: any[], limit: number, input: Statement<any[], any[]>, output: Writable) {
     return super.importBatch([lastKey[0], ...lastKey], limit, input, output);
   }
 }

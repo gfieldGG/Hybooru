@@ -1,20 +1,20 @@
 import React from "react";
 import chalk from "chalk";
+import * as expressCore from "express-serve-static-core";
 import ReactDOMServer from 'react-dom/server';
-import { StaticRouter } from "react-router";
-import express from "express";
+import { Router } from "wouter";
 import { Theme } from "../../client/hooks/useTheme";
 import App from "../../client/App";
 import index from '../views/index.handlebars';
 import HTTPError from "../helpers/HTTPError";
 import configs from "../helpers/configs";
-import { InitialData } from "../routes/apiTypes";
+import { InitialData } from "../../types/api";
 import * as globalController from "../controllers/global";
 
 const removeTags = /[<>]/g;
 const tagsToReplace: Record<string, string> = {
-  '<': `\\u003C`, // eslint-disable-line @typescript-eslint/naming-convention
-  '>': `\\u003E`, // eslint-disable-line @typescript-eslint/naming-convention
+  '<': `\\u003C`,
+  '>': `\\u003E`,
 };
 
 export interface OGImage {
@@ -50,20 +50,16 @@ export interface SSROptions {
   ogVideo?: OGVideo;
   ogUrl?: string;
   ogSiteName?: string;
-  noIndex?: boolean;
-  soft404?: boolean;
+  noIndex?: boolean | string;
 }
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    export interface Response {
-      react: <Data>(initialData: Data, options?: SSROptions) => Response;
-    }
+declare module "express-serve-static-core" {
+  export interface ResponseEx<ResBody> extends expressCore.Response<ResBody, any, any> {
+    react: (initialData: ResBody, options?: SSROptions) => Response;
   }
 }
 
-export default function reactMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+export default function reactMiddleware(req: expressCore.RequestEx<any, any, any>, res: expressCore.ResponseEx<any>, next: expressCore.NextFunction) {
   res.react = (initialData, options) => {
     if(res.headersSent) return res;
     
@@ -75,10 +71,9 @@ export default function reactMiddleware(req: express.Request, res: express.Respo
       const theme = req.cookies.theme || Theme.AUTO;
       const config = await globalController.getConfig();
       const title = options?.title ? `${options?.title} | ${config.appName}` : config.appName;
+      const noIndex = options?.noIndex === true ? 'noindex' : options?.noIndex;
       
-      if(options?.noIndex) {
-        res.header('X-Robots-Tag', 'noindex');
-      }
+      if(noIndex) res.header('X-Robots-Tag', noIndex);
       
       // noinspection JSUnreachableSwitchBranches
       switch(req.accepts(['html', 'json'])) {
@@ -86,6 +81,10 @@ export default function reactMiddleware(req: express.Request, res: express.Respo
           if(options?.htmlRedirect) {
             res.redirect(options.htmlRedirect);
             break;
+          }
+          
+          if(configs.experimental.honeypot?.enabled && req.ip) {
+            config.honeypot = { ip: req.ip };
           }
           
           const initialDataEx: InitialData = {
@@ -98,9 +97,9 @@ export default function reactMiddleware(req: express.Request, res: express.Respo
           let reactContent: string;
           try {
             reactContent = ReactDOMServer.renderToString(
-              <StaticRouter location={req.originalUrl} context={{}}>
+              <Router ssrPath={req.originalUrl}>
                 <App initialData={initialDataEx} />
-              </StaticRouter>,
+              </Router>,
             );
           } catch(e) {
             console.error(chalk.red.bold("Error during SSR!"));
@@ -110,8 +109,6 @@ export default function reactMiddleware(req: express.Request, res: express.Respo
           }
           
           const initialDataJSON = JSON.stringify(initialDataEx).replace(removeTags, tag => tagsToReplace[tag] || tag);
-          
-          if(options?.soft404) res.status(404);
           
           res.send(index({
             reactContent,

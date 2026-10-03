@@ -6,6 +6,7 @@
 	"appDescription": "Hydrus-based booru-styled imageboard in React",
 	"adminPassword": null,
 	"isTTY": null,
+	"proxy": false,
 	"importBatchSize": 8192,
 	"db": {
 		"user": "hybooru",
@@ -49,5 +50,8 @@
 		"owner": "gfieldgg",
 		"repo": "hybooru",
 		"cacheLifeMs": 3600000
+	},
+	"experimental": {
+		"honeypot": null
 	}
 }

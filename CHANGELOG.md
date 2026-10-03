@@ -1,7 +1,6 @@
 
 ### TODO:
 
-- fix very long tags fetch on last pages with a lot of tags
 - DMCA page
 - IPFS integration
 - Fix `Error: Request aborted`
@@ -15,6 +14,21 @@
 
 
 # Unreleased
+
+
+# v1.16.1
+
+- Fixed requests hanging forever when requesting non-existent files
+- Fixed tags not directing to search results from the post page (#62)
+
+
+# v1.16.0
+
+- Added support for multiple file/thumbnail locations
+- Added experimental honeypot feature
+- Added `proxy` config field
+- Updated codebase to React 19, Express 5, and more
+- Trailing space in search input is now automatically inserted and removed when moving between url and input
 
 
 # v1.15.3

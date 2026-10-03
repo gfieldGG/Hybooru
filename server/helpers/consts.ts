@@ -1,6 +1,6 @@
 // https://github.com/hydrusnetwork/hydrus/blob/master/hydrus/core/HydrusConstants.py
 
-import { Post, PostSummary } from "../routes/apiTypes";
+import { Post, PostSummary } from "../../types/api";
 
 export enum ServiceID {
   TAG_REPOSITORY = 0,
@@ -134,7 +134,6 @@ export enum Mime {
 export const MIME_EXT: Partial<Record<Mime, string>> = {
   [Mime.APPLICATION_HYDRUS_CLIENT_COLLECTION]: '.collection',
   [Mime.IMAGE_JPEG]: '.jpg',
-  [Mime.IMAGE_JXL]: '.jxl',
   [Mime.IMAGE_PNG]: '.png',
   [Mime.ANIMATION_APNG]: '.png',
   [Mime.IMAGE_GIF]: '.gif',
@@ -215,7 +214,6 @@ export const MIME_EXT: Partial<Record<Mime, string>> = {
 export const MIME_STRING: Partial<Record<Mime, string>> = {
   [Mime.APPLICATION_HYDRUS_CLIENT_COLLECTION]: 'collection',
   [Mime.IMAGE_JPEG]: 'image/jpeg',
-  [Mime.IMAGE_JXL]: 'image/jxl',
   [Mime.IMAGE_PNG]: 'image/png',
   [Mime.ANIMATION_APNG]: 'image/apng',
   [Mime.IMAGE_GIF]: 'image/gif',
@@ -314,7 +312,7 @@ export const rangeRatingRegex = /^rating:(\d+)(?:-(\d+))?$/;
 export const anyRatingRegex = /^rating:(\d+(?:-\d+)?|none)$/;
 
 export const fileUrl = (post: Post | PostSummary) => `/files/f${post.sha256}${post.extension}`;
-export const thumbnailUrl = (post: Post | PostSummary) =>  `/files/t${post.sha256}.thumbnail`;
+export const thumbnailUrl = (post: Post | PostSummary) => `/files/t${post.sha256}.thumbnail`;
 
 export function prettifyTag(tag: string) {
   const match = tag.match(namespaceRegex);

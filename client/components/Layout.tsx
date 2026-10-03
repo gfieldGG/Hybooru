@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { useHistory } from "react-router";
+import { Link, useLocation } from "wouter";
 import ReactForm from "../components/ReactForm";
 import useMeasure from "../hooks/useMeasure";
 import usePageData from "../hooks/usePageData";
 import ErrorPage from "../routes/error/ErrorPage";
 import useQuery from "../hooks/useQuery";
-import { qsStringify } from "../helpers/utils";
+import { qsStringify, trimQuery } from "../helpers/utils";
 import TagInput from "./TagInput";
 import SSRCurtain from "./SSRCurtain";
 import ThemeSwitch from "./ThemeSwitch";
@@ -37,8 +36,8 @@ export interface LayoutProps {
 }
 
 export default function Layout({ className, sidebar, children, extraLink, searchAction = "/posts", random = true, simpleSettings = false, dimmed = false, plain = false, noError = false }: LayoutProps) {
-  const history = useHistory();
-  const [query] = useQuery();
+  const [, navigate] = useLocation();
+  const { query } = useQuery();
   const { ref, rect } = useMeasure();
   const { pageError, fetching } = usePageData(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -76,19 +75,26 @@ export default function Layout({ className, sidebar, children, extraLink, search
     if(!random) return;
     const onKeyDown = (ev: KeyboardEvent) => {
       if(ev.key !== "r" || ev.ctrlKey || ev.altKey || ev.shiftKey || ev.metaKey || isTextInput(document.activeElement)) return;
-      history.push(`/random${qsStringify({ query: query || undefined })}`);
+      navigate(`/random${qsStringify({ query: query || undefined })}`);
     };
     
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [random, query, history]);
+  }, [random, query, navigate]);
   
   useEffect(() => {
     if(!settingsOpen) return;
+    let done = false;
     const onDocumentClick = () => setSettingsOpen(false);
     
-    document.addEventListener("click", onDocumentClick);
-    return () => document.removeEventListener("click", onDocumentClick);
+    setTimeout(() => {
+      if(!done) document.addEventListener("click", onDocumentClick);
+    }, 0);
+    
+    return () => {
+      done = true;
+      document.removeEventListener("click", onDocumentClick);
+    };
   }, [settingsOpen]);
   
   if(pageError && !noError) return <ErrorPage error={pageError} />;
@@ -118,7 +124,7 @@ export default function Layout({ className, sidebar, children, extraLink, search
           <ThemeSwitch />
           {extraLink}
         </div>
-        <ReactForm className="search" action={searchAction}>
+        <ReactForm className="search" action={searchAction} processFormData={trimQuery}>
           <TagInput name="query" placeholder="Search: flower sky 1girl" />
           <button hidden /> {/* Capture enter-submit */}
           <button>Search</button>

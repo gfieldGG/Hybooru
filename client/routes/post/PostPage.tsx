@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import { PostPageData, Relation } from "../../../server/routes/apiTypes";
+import { PostPageResponse, Relation } from "../../../types/api";
 import { fileUrl, MIME_STRING } from "../../../server/helpers/consts";
 import { copyText, parseDuration, parseSize } from "../../helpers/utils";
 import usePageData from "../../hooks/usePageData";
@@ -8,7 +8,6 @@ import useConfig from "../../hooks/useConfig";
 import Layout from "../../components/Layout";
 import Thumbnail from "../../components/Thumbnail";
 import Tags from "../../components/Tags";
-import ErrorPage from "../error/ErrorPage";
 import File from "./File";
 import SourceLink from "./SourceLink";
 import "./PostPage.scss";
@@ -21,13 +20,14 @@ const RELATION_STRING: Record<Relation, string> = {
 
 export default function PostPage() {
   const [{ ratingStars }] = useConfig();
-  const { pageData } = usePageData<PostPageData>();
+  const { pageData } = usePageData<PostPageResponse>();
   const [fullHeight] = useLocalStorage("fullHeight", false);
   
+  const post = pageData?.post;
   const sortedRelations = useMemo(() => {
-    if(!pageData?.post) return [];
-    else return [...pageData.post.relations, pageData.post].sort((a, b) => a.id - b.id);
-  }, [pageData?.post]);
+    if(!post) return [];
+    else return [...post.relations, post].sort((a, b) => a.id - b.id);
+  }, [post]);
   
   const sha256 = pageData?.post.sha256;
   const onCopyFileId = useCallback(() => sha256 && copyText("FileId", sha256), [sha256]);
@@ -79,11 +79,11 @@ export default function PostPage() {
                 <div><b><a className="copyFileId" onClick={onCopyFileId}>Copy FileId</a></b></div>
                 <div><b><a href={link} target="_blank" rel="noreferrer" download>Download This File</a></b></div>
               </SidebarBlock>
-              {pageData.post.sources.length > 0 &&
+              {pageData.post.sources.length > 0 && (
                 <SidebarBlock name="sources" header="Sources">
                   {pageData.post.sources.map(url => <SourceLink key={url} url={url} />)}
                 </SidebarBlock>
-              }
+              )}
               <Tags tags={pageData.post.tags} grouped />
               {staticNotes.map((note, id) => (
                 <div className="namespace spaced note" key={id}>
@@ -91,19 +91,18 @@ export default function PostPage() {
                   <p>{note.note}</p>
                 </div>
               ))}
-            </>}> {/* eslint-disable-line react/jsx-closing-tag-location */}
+            </>}> {/* eslint-disable-line @stylistic/jsx-closing-tag-location */}
       <div className="fileWrap">
         <File post={pageData.post} link={link} />
       </div>
-      {pageData.post.relations.length > 0 &&
+      {pageData.post.relations.length > 0 && (
         <div className="relations">
           {sortedRelations.map(relation => <Thumbnail key={relation.id}
-                                                      id={relation.id}
                                                       post={relation}
                                                       label={"kind" in relation ? RELATION_STRING[relation.kind] : <b>This Post</b>}
                                                       noFade />)}
         </div>
-      }
+      )}
     </Layout>
   );
 }

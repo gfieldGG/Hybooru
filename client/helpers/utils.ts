@@ -62,6 +62,11 @@ export async function copyText(name: string, text: string) {
     toast.success(`${name} copied to clipboard!`);
   } catch(err) {
     console.error(err);
-    toast.error(`Failed to copy to clipboard: ${err}`);
+    toast.error(`Failed to copy to clipboard: ${err as any}`);
   }
+}
+
+export function trimQuery(formData: FormData) {
+  const query = formData.get("query");
+  if(typeof query === "string" && query.endsWith(" ")) formData.set("query", query.slice(0, -1));
 }

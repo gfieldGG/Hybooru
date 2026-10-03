@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import pg from "pg";
 import { Theme } from "../../client/hooks/useTheme";
 import chalk from "chalk";
-import { ThumbnailsMode } from "../routes/apiTypes";
+import { ThumbnailsMode } from "../../types/api";
 import * as jp from "./jsonpatch";
 
 interface Configs {
@@ -14,6 +14,7 @@ interface Configs {
   appDescription: string,
   adminPassword: string | null,
   isTTY: boolean | null,
+  proxy: string | string[] | boolean,
   importBatchSize: number,
   pageSize?: number, // deprecated
   cachePages?: number, // deprecated
@@ -24,8 +25,8 @@ interface Configs {
   db: pg.PoolConfig,
   posts: {
     services: Array<string | number> | null,
-    filesPathOverride: string | null,
-    thumbnailsPathOverride: string | null,
+    filesPathOverride: string | string[] | null,
+    thumbnailsPathOverride: string | string[] | null,
     thumbnailsMode: string,
     pageSize: number,
     cachePages: number,
@@ -58,6 +59,14 @@ interface Configs {
     repo: string,
     cacheLifeMs: number
   } | null,
+  experimental: {
+    honeypot: {
+      enabled: boolean,
+      depth: number,
+      webhook: string,
+      token: string,
+    } | null,
+  },
 }
 
 let configs: Configs = {
@@ -68,6 +77,7 @@ let configs: Configs = {
   appDescription: "Hydrus-based booru-styled imageboard in React",
   adminPassword: null,
   isTTY: null,
+  proxy: false,
   importBatchSize: 8192,
   db: {
     user: "hybooru",
@@ -111,6 +121,9 @@ let configs: Configs = {
     owner: "gfieldgg",
     repo: "hybooru",
     cacheLifeMs: 3600000
+  },
+  experimental: {
+    honeypot: null,
   }
 };
 
