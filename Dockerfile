@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /build
 RUN apk add --update --no-cache \
     # Gyp build dependencies
@@ -11,7 +11,7 @@ RUN npm install && \
     mv dist /app && \
     mv node_modules /app/node_modules
 
-FROM node:20-alpine AS runtime
+FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV PORT=80
 EXPOSE 80
