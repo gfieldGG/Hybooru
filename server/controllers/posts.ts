@@ -23,6 +23,9 @@ const SORTS = {
 
 const CUSTOM_SORTS = configs.tags.sortPresets || {};
 
+const RANDOM_SORT = "random";
+const randomSortRegex = /^random(?::(\d+))?$/;
+
 interface SearchArgs {
   query?: string;
   page?: number;
@@ -322,6 +325,7 @@ export interface CacheKey {
   sha256: string[];
   sort: string;
   order: "asc" | "desc";
+  seed: string;
   rating: undefined | null | [number, number];
   inbox: undefined | boolean;
   trash: undefined | boolean;
@@ -343,6 +347,7 @@ export function getCacheKey(query: string): CacheKey {
     md5: [],
     sort: SORTS.date,
     order: "desc",
+    seed: "0",
     rating: undefined,
     inbox: undefined,
     trash: undefined,
@@ -369,8 +374,11 @@ export function getCacheKey(query: string): CacheKey {
       }
       
       if(part in CUSTOM_SORTS) key.sort = part;
-      else if(part in SORTS) key.sort = SORTS[part as keyof typeof SORTS];
-      else throw new HTTPError(400, `Invalid sorting: ${part}, expected: ${Object.keys(SORTS).join(", ")}`);
+      else if((match = part.match(randomSortRegex))) {
+        key.sort = RANDOM_SORT;
+        key.seed = match[1] ?? "0";
+      } else if(part in SORTS) key.sort = SORTS[part as keyof typeof SORTS];
+      else throw new HTTPError(400, `Invalid sorting: ${part}, expected: ${[...Object.keys(SORTS), RANDOM_SORT].join(", ")}`);
     } else if(part === "rating:none") {
       key.rating = null;
     } else if(part.startsWith("sha256:")) {
@@ -449,7 +457,7 @@ export function clearCache() {
 }
 
 export function getCachedPostsQuery(key: CacheKey): SQLStatement {
-  let { whitelist, blacklist, sha256, md5, sort, order, offset, rating, inbox, trash } = key;
+  let { whitelist, blacklist, sha256, md5, sort, order, seed, offset, rating, inbox, trash } = key;
   
   const onlyTagged = whitelist.length > 0 && whitelist.every(pat => blankPattern.test(pat));
   const onlyUntagged = blacklist.some(pat => blankPattern.test(pat));
@@ -519,6 +527,8 @@ export function getCachedPostsQuery(key: CacheKey): SQLStatement {
     joinsSQL.append(SQL`
       LEFT JOIN post_sort_keys ON post_sort_keys.preset = ${sort} AND post_sort_keys.postid = posts.id
     `);
+  } else if(sort === RANDOM_SORT) {
+    orderBySQL = SQL`ORDER BY md5(posts.id::TEXT || ':' || ${seed}::TEXT), posts.id`;
   } else if(sort !== "id") {
     filteredWhere.push(SQL``.append(`posts."${sort}" IS NOT NULL`));
     orderBySQL = SQL``.append(`ORDER BY posts."${sort}" ${order}, posts.id ${order}`);

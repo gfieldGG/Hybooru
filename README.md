@@ -75,6 +75,8 @@ Hydrus's `namespace:subtag` syntax is also supported.
 Additionally you can sort results by including `order:*` in query. Supported sorts are: `order:date`,
 `order:id`, `order:score`, `order:size` and [Tag-based Sort Presets](#tag-based-sort-presets). You can also append
 `_desc` or `_asc` to specify order(eg: `order:date_asc`). If not specified, post are sorted by date descending.
+`order:random:<seed>` shuffles results in a stable order determined by the numeric seed (eg: `order:random:1234`),
+so pagination and shared links stay consistent. Picking "Random" in the settings menu generates a new seed.
 
 ### Rating Filter
 

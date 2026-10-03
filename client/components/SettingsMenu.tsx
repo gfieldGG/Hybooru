@@ -33,9 +33,12 @@ export default function SettingsMenu({ open = false, simpleSettings = false, ...
   const toggleBlurhash = useCallback((ev: React.MouseEvent) => { ev.preventDefault(); setBlurhash(!blurhash); }, [blurhash, setBlurhash]);
   
   const onSort = useCallback((ev: React.ChangeEvent<HTMLSelectElement>) => {
+    let sort = ev.target.value;
+    if(sort === "random") sort = `random:${Math.floor(Math.random() * 1e9)}`;
+    
     const query = [
       ...parts.filter(s => !s.startsWith("order:")),
-      `order:${ev.target.value}`,
+      `order:${sort}`,
     ].join(" ");
     
     setQuery(query);
@@ -87,6 +90,7 @@ export default function SettingsMenu({ open = false, simpleSettings = false, ...
             </React.Fragment>
           ))}
           <option value="id">Id</option>
+          <option value="random">Random</option>
         </select>
       </div>
       {config.ratingStars !== null && (
