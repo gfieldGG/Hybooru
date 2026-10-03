@@ -1,0 +1,40 @@
+name: "git tag"
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - package.json
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.TAG_PUSH_TOKEN }}
+
+      - name: Check if version changed
+        id: version
+        run: |
+          OLD=$(git show "${{ github.event.before }}:package.json" | jq -r .version)
+          NEW=$(jq -r .version package.json)
+          echo "old=$OLD"
+          echo "new=$NEW"
+          if [ "$OLD" != "$NEW" ] && [[ "$NEW" =~ -gf\.[0-9]+$ ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "version=$NEW" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push tag
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
