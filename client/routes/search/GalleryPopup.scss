@@ -74,6 +74,12 @@
 
     .muteBtn {
       left: 0;
+
+      svg {
+        display: block;
+        width: 1em;
+        height: 1.2em; // match the line height of the ✕ glyph
+      }
     }
 
     .moreBtn {

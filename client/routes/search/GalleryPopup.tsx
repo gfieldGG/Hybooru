@@ -145,7 +145,7 @@ export default function GalleryPopup({ posts, id, setId }: GalleryPopupProps) {
   return (
     <div className="GalleryPopup" ref={wrapper}>
       <div className={`header${header ? " open" : ""}`}>
-        <div className="muteBtn" onClick={onToggleMute} title={muted ? "Unmute (M)" : "Mute (M)"}>{muted ? "🔇" : "🔊"}</div>
+        <div className="muteBtn" onClick={onToggleMute} title={muted ? "Unmute (M)" : "Mute (M)"}><VolumeIcon muted={muted} /></div>
         <div className="closeBtn" onClick={onClose}>✕</div>
         <Link to={getUrl(query, `/posts/${post.id}`)} className="moreBtn">Open Post</Link>
       </div>
@@ -164,5 +164,16 @@ export default function GalleryPopup({ posts, id, setId }: GalleryPopupProps) {
         </div>
       )}
     </div>
+  );
+}
+
+function VolumeIcon({ muted }: { muted: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" />
+      {muted
+        ? <path d="M16 9l6 6M22 9l-6 6" />
+        : <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />}
+    </svg>
   );
 }
