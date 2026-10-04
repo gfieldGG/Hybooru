@@ -52,7 +52,7 @@
       opacity: 1;
     }
 
-    .closeBtn, .moreBtn {
+    .closeBtn, .moreBtn, .muteBtn {
       position: absolute;
       top: 0;
       font-size: 2rem;
@@ -70,6 +70,10 @@
 
     .closeBtn {
       right: 0;
+    }
+
+    .muteBtn {
+      left: 0;
     }
 
     .moreBtn {

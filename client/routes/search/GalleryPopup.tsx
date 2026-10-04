@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { PostSummary } from "../../../types/api";
 import File from "../post/File";
 import useQuery from "../../hooks/useQuery";
+import useLocalStorage from "../../hooks/useLocalStorage";
 import "./GalleryPopup.scss";
 
 interface GalleryPopupProps {
@@ -13,6 +14,7 @@ interface GalleryPopupProps {
 
 export default function GalleryPopup({ posts, id, setId }: GalleryPopupProps) {
   const [header, toggleHeader] = useReducer(acc => !acc, true);
+  const [muted, setMuted] = useLocalStorage("galleryMuted", false);
   const [, navigate] = useLocation();
   const { query, getUrl } = useQuery();
   const offset = useRef(0);
@@ -36,28 +38,15 @@ export default function GalleryPopup({ posts, id, setId }: GalleryPopupProps) {
     ev.preventDefault();
     
     if(Math.abs(offset.current) < 1) {
-      const target = ev.currentTarget.querySelector("img");
+      // .File is sized to the media rect, so it marks the clickable area for every file type.
+      // Compare coordinates instead of ev.target, since pointer capture retargets the click to the wrapper.
+      const file = ev.currentTarget.querySelector(".File");
       let outside = false;
       
-      if(target instanceof HTMLImageElement) {
-        let boundsX = target.naturalWidth || target.width;
-        let boundsY = target.naturalHeight || target.height;
-        const bbox = target.getBoundingClientRect();
-        
-        if(boundsX > bbox.width) {
-          boundsY *= (bbox.width / boundsX);
-          boundsX = bbox.width;
-        }
-        
-        if(boundsY > bbox.height) {
-          boundsX *= (bbox.height / boundsY);
-          boundsY = bbox.height;
-        }
-        
-        if((target.width - boundsX) / 2 > ev.clientX - bbox.x) outside = true;
-        if((target.width + boundsX) / 2 < ev.clientX - bbox.x) outside = true;
-        if((target.height - boundsY) / 2 > ev.clientY - bbox.y) outside = true;
-        if((target.height + boundsY) / 2 < ev.clientY - bbox.y) outside = true;
+      if(file) {
+        const bbox = file.getBoundingClientRect();
+        outside = ev.clientX < bbox.left || ev.clientX > bbox.right
+               || ev.clientY < bbox.top || ev.clientY > bbox.bottom;
       }
       
       if(outside) setId(null);
@@ -89,6 +78,7 @@ export default function GalleryPopup({ posts, id, setId }: GalleryPopupProps) {
   }, []);
   
   const onClose = useCallback(() => setId(null), [setId]);
+  const onToggleMute = useCallback(() => setMuted(!muted), [muted, setMuted]);
   
   useEffect(() => {
     if(!post) return;
@@ -133,6 +123,7 @@ export default function GalleryPopup({ posts, id, setId }: GalleryPopupProps) {
       else if(ev.key === "ArrowRight" && rightPost) setId(rightPost.id);
       else if(ev.key === "Enter") navigate(getUrl(query, `/posts/${post.id}`));
       else if(ev.key === "Escape") setId(null);
+      else if(ev.key === "m" || ev.key === "M") onToggleMute();
     };
     
     const onWheel = (ev: WheelEvent) => {
@@ -147,13 +138,14 @@ export default function GalleryPopup({ posts, id, setId }: GalleryPopupProps) {
       document.documentElement.removeEventListener("keydown", onKeyDown);
       document.documentElement.removeEventListener("wheel", onWheel);
     };
-  }, [getUrl, leftPost, navigate, post, query, rightPost, setId]);
+  }, [getUrl, leftPost, navigate, onToggleMute, post, query, rightPost, setId]);
   
   if(!post) return null;
   
   return (
     <div className="GalleryPopup" ref={wrapper}>
       <div className={`header${header ? " open" : ""}`}>
+        <div className="muteBtn" onClick={onToggleMute} title={muted ? "Unmute (M)" : "Mute (M)"}>{muted ? "🔇" : "🔊"}</div>
         <div className="closeBtn" onClick={onClose}>✕</div>
         <Link to={getUrl(query, `/posts/${post.id}`)} className="moreBtn">Open Post</Link>
       </div>
@@ -164,7 +156,7 @@ export default function GalleryPopup({ posts, id, setId }: GalleryPopupProps) {
       )}
       {/* eslint-disable-next-line react/no-unknown-property */} { /* TODO: WHY? */ }
       <div key={post.id} className="wrap" onClick={onClick} onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerMove={onPointerMove}>
-        <File post={post} draggable={false} controls={false} autoPlay />
+        <File post={post} draggable={false} controls={false} autoPlay muted={muted} />
       </div>
       {rightPost && (
         <div key={rightPost.id} className="wrap right">
